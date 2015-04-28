@@ -368,13 +368,16 @@ void* Decode_RunDataThread(void *customData)
     }
     
     return (void*)0;
-}
+}   
 
 // looper thread
 void *looperRun (void* data)
 {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    long int t; 
+
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t *)data;
-    
     if(deviceManager != NULL)
     {
         while (deviceManager->run)
@@ -382,7 +385,15 @@ void *looperRun (void* data)
             sendPCMD(deviceManager);
             
             sendCameraOrientation(deviceManager);
-            
+            gettimeofday(&tval_after, NULL);
+            timersub(&tval_after, &tval_before, &tval_result);
+
+             t = (long int)tval_result.tv_usec*1000;
+
+            fprintf(bebop_logging,"TIME: %i, ROLL: %f, PITCH: %f, YAW: %f, ALTITUDE: %f, DES_GAZ: %f\n",
+                (int)time(NULL),deviceManager->roll_cur , deviceManager-> pitch_cur, 
+                deviceManager-> yaw_cur, deviceManager->altitude_cur, deviceManager-> gaz_des);  
+
             usleep(50000);
         }
     }
@@ -1329,6 +1340,7 @@ void altitudeCallback(double altitude, void *custom)
     if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
     {
        IHM_PrintAltitude(deviceManager->ihm, altitude);
+       deviceManager->altitude_cur = altitude; 
     }
 }
 
@@ -1338,7 +1350,11 @@ void attitudeCallback(float roll, float pitch, float yaw, void *custom)
     if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
     {
        IHM_PrintAttitude(deviceManager->ihm, roll, pitch, yaw);
-       fprintf(bebop_logging,"TIME: %d, ROLL: %f, PITCH: %f, YAW: %f\n",(int)time(NULL), roll,pitch,yaw); 
+       deviceManager->roll_cur = roll; 
+       deviceManager->pitch_cur = pitch; 
+       deviceManager ->yaw_cur = yaw; 
+
+       // fprintf(bebop_logging,"TIME: %d, ROLL: %f, PITCH: %f, YAW: %f\n",(int)time(NULL), roll,pitch,yaw); 
 
     }   
 }
