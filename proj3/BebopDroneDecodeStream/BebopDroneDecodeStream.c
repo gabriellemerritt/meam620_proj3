@@ -56,6 +56,7 @@
 #include <libARNetworkAL/ARNetworkAL.h>
 #include <libARDiscovery/ARDiscovery.h>
 #include <libARStream/ARStream.h>
+#include <time.h> 
 
 #include "BebopDroneDecodeStream.h"
 
@@ -85,6 +86,8 @@
 #define BD_RAW_FRAME_POOL_SIZE 50
 
 #define ERROR_STR_LENGTH 2048
+
+File *bebop_logging;
 
 int getNextDataCallback(uint8_t **data, void *customData);
 void* Decode_RunDataThread(void *customData);
@@ -383,7 +386,7 @@ void *looperRun (void* data)
             usleep(50000);
         }
     }
-    
+    // fclose(bebop_logging); 
     return NULL;
 }
 
@@ -394,6 +397,12 @@ int main (int argc, char *argv[])
     BD_MANAGER_t *deviceManager = malloc(sizeof(BD_MANAGER_t));
 
     pid_t child = 0;
+    bebop_logging = fopen("bebop_logger.txt", "w"); 
+    if(bebop_logging == NULL)
+    {
+        printf("Error Opening File"); 
+    } 
+
     
     // fork the process to launch ffplay
     if ((child = fork()) == 0)
@@ -649,6 +658,7 @@ int main (int argc, char *argv[])
         stopDecoder (deviceManager);
         stopNetwork (deviceManager);
         fclose (deviceManager->video_out);
+        fclose(bebop_logging); 
         free (deviceManager);
     }
 
@@ -1328,6 +1338,8 @@ void attitudeCallback(float roll, float pitch, float yaw, void *custom)
     if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
     {
        IHM_PrintAttitude(deviceManager->ihm, roll, pitch, yaw);
+       fprintf(bebop_logging,"TIME: %d, ROLL: %f, PITCH: %f, YAW: %f\n",(int)time(NULL), roll,pitch,yaw); 
+
     }   
 }
 
