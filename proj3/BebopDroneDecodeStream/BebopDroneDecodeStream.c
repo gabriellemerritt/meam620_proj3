@@ -390,8 +390,8 @@ void *looperRun (void* data)
 
              t = (long int)tval_result.tv_usec*1000;
 
-            fprintf(bebop_logging,"TIME: %i, ROLL: %f, PITCH: %f, YAW: %f, ALTITUDE: %f, DES_GAZ: %f\n",
-                (int)time(NULL),deviceManager->roll_cur , deviceManager-> pitch_cur, 
+            fprintf(bebop_logging,"TIME: %lu, ROLL: %f, PITCH: %f, YAW: %f, ALTITUDE: %f, DES_GAZ: %f\n",
+                t,deviceManager->roll_cur , deviceManager-> pitch_cur, 
                 deviceManager-> yaw_cur, deviceManager->altitude_cur, deviceManager-> gaz_des);  
 
             usleep(50000);
