@@ -149,6 +149,7 @@ void batteryStateChangedCallback (uint8_t percent, void *custom);
 void flyingStateChangedCallback (eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE state, void *custom);
 void altitudeCallback(double altitude, void *custom);
 void attitudeCallback(float roll, float pitch, float yaw, void *custom);
+void velocityCallback(float Vx, float Vy, float Vz, void* custom);
 
 /** IHM callbacks **/
 void onInputEvent (eIHM_INPUT_EVENT event, void *customData);

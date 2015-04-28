@@ -1268,6 +1268,7 @@ void registerARCommandsCallbacks (BD_MANAGER_t *deviceManager)
     ARCOMMANDS_Decoder_SetARDrone3PilotingStateFlyingStateChangedCallback(flyingStateChangedCallback, deviceManager);
     ARCOMMANDS_Decoder_SetARDrone3PilotingStateAltitudeChangedCallback(altitudeCallback, deviceManager);
     ARCOMMANDS_Decoder_SetARDrone3PilotingStateAttitudeChangedCallback(attitudeCallback, deviceManager);
+    ARCOMMANDS_Decoder_SetARDrone3PilotingStateSpeedChangedCallback(velocityCallback, deviceManager);
     // ADD HERE THE CALLBACKS YOU ARE INTERESTED IN
 }
 
@@ -1340,6 +1341,15 @@ void attitudeCallback(float roll, float pitch, float yaw, void *custom)
        IHM_PrintAttitude(deviceManager->ihm, roll, pitch, yaw);
        fprintf(bebop_logging,"TIME: %d, ROLL: %f, PITCH: %f, YAW: %f\n",(int)time(NULL), roll,pitch,yaw); 
 
+    }   
+}
+
+void velocityCallback(float Vx, float Vy, float Vz, void *custom)
+{
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*)custom;
+    if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
+    {
+       IHM_PrintVelocity(deviceManager->ihm, Vx, Vy, Vz);
     }   
 }
 
