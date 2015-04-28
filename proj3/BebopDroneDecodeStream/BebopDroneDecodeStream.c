@@ -87,7 +87,7 @@
 
 #define ERROR_STR_LENGTH 2048
 
-File *bebop_logging;
+FILE *bebop_logging;
 
 int getNextDataCallback(uint8_t **data, void *customData);
 void* Decode_RunDataThread(void *customData);
