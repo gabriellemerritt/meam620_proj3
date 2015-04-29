@@ -373,26 +373,26 @@ void* Decode_RunDataThread(void *customData)
 // looper thread
 void *looperRun (void* data)
 {
-    struct timeval tval_before, tval_after, tval_result;
-    gettimeofday(&tval_before, NULL);
-    long int t; 
+    clock_t t_start;
+    float t_elapsed; 
+    t_start = clock();
 
-    BD_MANAGER_t *deviceManager = (BD_MANAGER_t *)data;
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) data;
+
     if(deviceManager != NULL)
     {
         while (deviceManager->run)
         {
             sendPCMD(deviceManager);
-            
             sendCameraOrientation(deviceManager);
-            gettimeofday(&tval_after, NULL);
-            timersub(&tval_after, &tval_before, &tval_result);
+            
+            t_elapsed = (float)(clock() - t_start)/CLOCKS_PER_SEC;
 
-             t = (long int)tval_result.tv_usec*1000;
-
-            fprintf(bebop_logging,"TIME: %lu, ROLL: %f, PITCH: %f, YAW: %f, ALTITUDE: %f, DES_GAZ: %f\n",
-                t,deviceManager->roll_cur , deviceManager-> pitch_cur, 
-                deviceManager-> yaw_cur, deviceManager->altitude_cur, deviceManager-> gaz_des);  
+            fprintf(bebop_logging,"TIME: %f, ROLL: %f, PITCH: %f, YAW: %f, X: %f, Y: %f, ALTITUDE: %f, VX: %f, VY: %f, VZ: %f \n",
+                t_elapsed,deviceManager->flightStates.roll_cur , deviceManager->flightStates.pitch_cur, 
+                deviceManager->flightStates.yaw_cur, deviceManager->flightStates.x_cur, deviceManager->flightStates.y_cur,
+                deviceManager->flightStates.z_cur, deviceManager->flightStates.vx_cur, deviceManager->flightStates.vy_cur,
+                deviceManager->flightStates.vz_cur);  
 
             usleep(50000);
         }
@@ -406,6 +406,10 @@ int main (int argc, char *argv[])
     /* local declarations */
     int failed = 0;
     BD_MANAGER_t *deviceManager = malloc(sizeof(BD_MANAGER_t));
+
+    /* initialize some states in deviceManager */
+    deviceManager->flightStates.x_cur = 0;
+    deviceManager->flightStates.y_cur = 0;
 
     pid_t child = 0;
     bebop_logging = fopen("bebop_logger.txt", "w"); 
@@ -1289,6 +1293,7 @@ void unregisterARCommandsCallbacks ()
     ARCOMMANDS_Decoder_SetARDrone3PilotingStateFlyingStateChangedCallback(NULL, NULL);
     ARCOMMANDS_Decoder_SetARDrone3PilotingStateAltitudeChangedCallback(NULL, NULL);
     ARCOMMANDS_Decoder_SetARDrone3PilotingStateAttitudeChangedCallback(NULL, NULL);
+    ARCOMMANDS_Decoder_SetARDrone3PilotingStateSpeedChangedCallback(NULL, NULL);
 }
 
 void batteryStateChangedCallback (uint8_t percent, void *custom)
@@ -1341,7 +1346,7 @@ void altitudeCallback(double altitude, void *custom)
     if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
     {
        IHM_PrintAltitude(deviceManager->ihm, altitude);
-       deviceManager->altitude_cur = altitude; 
+       deviceManager->flightStates.z_cur=altitude; 
     }
 }
 
@@ -1351,9 +1356,9 @@ void attitudeCallback(float roll, float pitch, float yaw, void *custom)
     if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
     {
        IHM_PrintAttitude(deviceManager->ihm, roll, pitch, yaw);
-       deviceManager->roll_cur = roll; 
-       deviceManager->pitch_cur = pitch; 
-       deviceManager ->yaw_cur = yaw; 
+       deviceManager->flightStates.roll_cur = roll; 
+       deviceManager->flightStates.pitch_cur = pitch; 
+       deviceManager->flightStates.yaw_cur = yaw; 
 
        // fprintf(bebop_logging,"TIME: %d, ROLL: %f, PITCH: %f, YAW: %f\n",(int)time(NULL), roll,pitch,yaw); 
 
@@ -1366,6 +1371,32 @@ void velocityCallback(float Vx, float Vy, float Vz, void *custom)
     if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
     {
        IHM_PrintVelocity(deviceManager->ihm, Vx, Vy, Vz);
+       //update velocity in device manager
+       deviceManager->flightStates.vx_cur = Vx;
+       deviceManager->flightStates.vy_cur = Vy;
+       deviceManager->flightStates.vz_cur = Vz;
+       //integrate x and y velocity in device manager to get position
+
+       static clock_t t_prev = 0;
+       float delta_t, delta_x, delta_y;
+
+       if(t_prev == 0)
+       {
+        t_prev = clock();
+       }
+
+       clock_t t_cur = clock();
+
+       delta_t = (float)(t_cur - t_prev)/CLOCKS_PER_SEC;
+       t_prev = t_cur;
+
+       delta_x = Vx * delta_t;
+       delta_y = Vy * delta_t;
+
+       deviceManager->flightStates.x_cur += delta_x;
+       deviceManager->flightStates.y_cur += delta_y;
+
+       IHM_PrintPosition(deviceManager->ihm, deviceManager->flightStates.x_cur, deviceManager->flightStates.y_cur);
     }   
 }
 

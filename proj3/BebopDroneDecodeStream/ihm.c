@@ -67,10 +67,16 @@
 #define INFO_Y 12
 
 #define ALT_X 0
-#define ALT_Y 14
+#define ALT_Y 13
+
+#define XY_X 0
+#define XY_Y 14
 
 #define ATT_X 0
 #define ATT_Y 15
+
+#define VEL_X 0
+#define VEL_Y 16
 
 /*****************************************
  *
@@ -356,7 +362,7 @@ void IHM_PrintAltitude(IHM_t *ihm, double altitude)
     {
         move(ALT_Y, 0);
         clrtoeol();
-        mvprintw(ALT_Y, ALT_X, "ALTITUDE: %.2d", altitude);
+        mvprintw(ALT_Y, ALT_X, "ALTITUDE: %.5f", altitude);
     }
 }
 
@@ -366,6 +372,26 @@ void IHM_PrintAttitude(IHM_t *ihm, float roll, float pitch, float yaw)
     {
         move(ATT_Y, 0);
         clrtoeol();
-        mvprintw(ATT_Y, ATT_X, "roll: %.2f, pitch: %.2f, yaw: %.2f", roll, pitch, yaw);
+        mvprintw(ATT_Y, ATT_X, "roll: %.5f, pitch: %.5f, yaw: %.5f", roll, pitch, yaw);
+    }
+}
+
+void IHM_PrintVelocity(IHM_t *ihm, float Vx, float Vy, float Vz)
+{
+    if (ihm != NULL)
+    {
+        move(VEL_Y, 0);
+        clrtoeol();
+        mvprintw(VEL_Y, VEL_X, "Vx: %.5f, Vy: %.5f, Vz: %.5f", Vx, Vy, Vz);
+    }
+}
+
+void IHM_PrintPosition(IHM_t *ihm, float X, float Y)
+{
+    if (ihm != NULL)
+    {
+        move(XY_Y, 0);
+        clrtoeol();
+        mvprintw(XY_Y, XY_X, "X: %.5f, Y: %.5f", X, Y);
     }
 }

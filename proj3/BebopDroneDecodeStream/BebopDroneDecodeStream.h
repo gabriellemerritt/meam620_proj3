@@ -50,6 +50,19 @@ typedef struct _ARDrone3CameraData_t_
     int pan;
 } BD_Cam_t;
 
+typedef struct 
+{
+    float roll_cur; 
+    float pitch_cur; 
+    float yaw_cur; 
+    float vx_cur;
+    float vy_cur;
+    float vz_cur;
+    float x_cur;
+    float y_cur;
+    float z_cur;
+} BD_states_t;
+
 typedef struct READER_THREAD_DATA_t READER_THREAD_DATA_t;
 
 typedef struct RawFrame_t RawFrame_t;
@@ -73,6 +86,7 @@ typedef struct
     
     BD_PCMD_t dataPCMD;
     BD_Cam_t dataCam;
+    BD_states_t flightStates;
     
     ARCODECS_Manager_t *decoder;
     int decodingCanceled;
@@ -95,13 +109,6 @@ typedef struct
     ARSAL_Thread_t *readerThreads;
     READER_THREAD_DATA_t *readerThreadsData;
     int run;
-    float roll_cur; 
-    float pitch_cur; 
-    float yaw_cur; 
-    double altitude_cur;
-    int gaz_des;
-
-
     
     IHM_t *ihm;
 } BD_MANAGER_t;
