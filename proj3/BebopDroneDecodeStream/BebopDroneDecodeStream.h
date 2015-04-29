@@ -95,6 +95,13 @@ typedef struct
     ARSAL_Thread_t *readerThreads;
     READER_THREAD_DATA_t *readerThreadsData;
     int run;
+    float roll_cur; 
+    float pitch_cur; 
+    float yaw_cur; 
+    double altitude_cur;
+    int gaz_des;
+
+
     
     IHM_t *ihm;
 } BD_MANAGER_t;
