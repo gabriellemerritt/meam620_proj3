@@ -88,13 +88,13 @@
 
 #define ERROR_STR_LENGTH 2048
 
-#define KPX 50
-#define KPY 50
-#define KPZ 50
+#define KPX 100
+#define KPY 100
+#define KPZ 100
 
-#define KDX 10
-#define KDY 10
-#define KDZ 10
+#define KDX 0
+#define KDY 0
+#define KDZ 0
 
 FILE *bebop_logging;
 
@@ -425,7 +425,7 @@ int main (int argc, char *argv[])
     deviceManager->hoverTraj.vz_des = 0;
     deviceManager->hoverTraj.x_des = 0;
     deviceManager->hoverTraj.y_des = 0;
-    deviceManager->hoverTraj.z_des = 1;
+    deviceManager->hoverTraj.z_des = 1.5;
 
     pid_t child = 0;
     bebop_logging = fopen("bebop_logger.txt", "w"); 
@@ -1818,10 +1818,12 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 if(deviceManager->PID_on == 0)
                 {
                     deviceManager->PID_on = 1;
+                    IHM_ShowState(deviceManager->ihm, "FLLLAAMMEE ON");
                 }
                 else
                 {
                     deviceManager->PID_on = 0;
+                    IHM_ShowState(deviceManager->ihm, "FLAAMMEE OFF :(");
                 }
             }
             break;
@@ -1839,6 +1841,13 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 else
                 {
                     followTrajectory(deviceManager->hoverTraj, deviceManager);
+                    /*
+                    deviceManager->dataPCMD.flag = 0;
+                    deviceManager->dataPCMD.roll = 0;
+                    deviceManager->dataPCMD.pitch = 0;
+                    deviceManager->dataPCMD.yaw = 0;
+                    deviceManager->dataPCMD.gaz = 0;
+                    */
                 }
                 
             }

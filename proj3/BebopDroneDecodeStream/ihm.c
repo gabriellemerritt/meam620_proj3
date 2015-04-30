@@ -78,6 +78,9 @@
 #define VEL_X 0
 #define VEL_Y 16
 
+#define NEWSTATE_X 0
+#define NEWSTATE_Y 17
+
 /*****************************************
  *
  *             private header:
@@ -400,5 +403,15 @@ void IHM_PrintPosition(IHM_t *ihm, float X, float Y)
         move(XY_Y, 0);
         clrtoeol();
         mvprintw(XY_Y, XY_X, "X: %.5f, Y: %.5f", X, Y);
+    }
+}
+
+void IHM_ShowState(IHM_t *ihm, char *state)
+{
+    if(ihm != NULL)
+    {
+        move(NEWSTATE_Y, 0);
+        clrtoeol();
+        mvprintw(NEWSTATE_Y, NEWSTATE_X, "Input State: %s", state);
     }
 }

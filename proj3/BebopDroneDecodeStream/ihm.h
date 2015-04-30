@@ -80,5 +80,6 @@ void IHM_PrintAltitude(IHM_t *ihm, double altitude);
 void IHM_PrintAttitude(IHM_t *ihm, float roll, float pitch, float yaw);
 void IHM_PrintVelocity(IHM_t *ihm, float Vx, float Vy, float Vz);
 void IHM_PrintPosition(IHM_t *ihm, float X, float Y);
+void IHM_ShowState(IHM_t *ihm, char *state);
 
 #endif /* _BEBOPDRONE_DECODE_IHM_H_ */
