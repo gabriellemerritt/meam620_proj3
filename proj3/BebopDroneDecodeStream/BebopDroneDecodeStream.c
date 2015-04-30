@@ -57,6 +57,7 @@
 #include <libARDiscovery/ARDiscovery.h>
 #include <libARStream/ARStream.h>
 #include <time.h> 
+#include <math.h>
 
 #include "BebopDroneDecodeStream.h"
 
@@ -86,6 +87,14 @@
 #define BD_RAW_FRAME_POOL_SIZE 50
 
 #define ERROR_STR_LENGTH 2048
+
+#define KPX 50
+#define KPY 50
+#define KPZ 50
+
+#define KDX 10
+#define KDY 10
+#define KDZ 10
 
 FILE *bebop_logging;
 
@@ -410,6 +419,13 @@ int main (int argc, char *argv[])
     /* initialize some states in deviceManager */
     deviceManager->flightStates.x_cur = 0;
     deviceManager->flightStates.y_cur = 0;
+    deviceManager->PID_on = 0;
+    deviceManager->hoverTraj.vx_des = 0;
+    deviceManager->hoverTraj.vy_des = 0;
+    deviceManager->hoverTraj.vz_des = 0;
+    deviceManager->hoverTraj.x_des = 0;
+    deviceManager->hoverTraj.y_des = 0;
+    deviceManager->hoverTraj.z_des = 1;
 
     pid_t child = 0;
     bebop_logging = fopen("bebop_logger.txt", "w"); 
@@ -1796,14 +1812,35 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 }
             }
             break;
+        case IHM_INPUT_EVENT_HOVER:
+            if(deviceManager != NULL)
+            {
+                if(deviceManager->PID_on == 0)
+                {
+                    deviceManager->PID_on = 1;
+                }
+                else
+                {
+                    deviceManager->PID_on = 0;
+                }
+            }
+            break;
         case IHM_INPUT_EVENT_NONE:
             if(deviceManager != NULL)
             {
-                deviceManager->dataPCMD.flag = 0;
-                deviceManager->dataPCMD.roll = 0;
-                deviceManager->dataPCMD.pitch = 0;
-                deviceManager->dataPCMD.yaw = 0;
-                deviceManager->dataPCMD.gaz = 0;
+                if (deviceManager->PID_on == 0)
+                {
+                    deviceManager->dataPCMD.flag = 0;
+                    deviceManager->dataPCMD.roll = 0;
+                    deviceManager->dataPCMD.pitch = 0;
+                    deviceManager->dataPCMD.yaw = 0;
+                    deviceManager->dataPCMD.gaz = 0;
+                }
+                else
+                {
+                    followTrajectory(deviceManager->hoverTraj, deviceManager);
+                }
+                
             }
             break;
         default:
@@ -1823,5 +1860,21 @@ int customPrintCallback (eARSAL_PRINT_LEVEL level, const char *tag, const char *
     }
     
     return 1;
+}
+
+//*******************************Controller***************************************/
+void followTrajectory(TRAJECTORY_t traj, void *customData)
+{
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
+
+    float ax_des, ay_des, yaw;
+    yaw = deviceManager->flightStates.yaw_cur;
+    //find desired acceleration in the x and y direction
+    ax_des = KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+    ay_des = KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+    //put them into desired angle for the attitude controller
+    deviceManager->dataPCMD.roll = 1/9.81*(ax_des*sin(yaw) - ay_des*cos(yaw));
+    deviceManager->dataPCMD.pitch = 1/9.81*(ax_des*cos(yaw) + ay_des*sin(yaw));
+    deviceManager->dataPCMD.gaz = traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur);
 }
 

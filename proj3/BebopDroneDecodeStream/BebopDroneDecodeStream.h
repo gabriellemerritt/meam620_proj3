@@ -63,6 +63,16 @@ typedef struct
     float z_cur;
 } BD_states_t;
 
+typedef struct 
+{
+    float vx_des;
+    float vy_des;
+    float vz_des;
+    float x_des;
+    float y_des;
+    float z_des;
+} TRAJECTORY_t;
+
 typedef struct READER_THREAD_DATA_t READER_THREAD_DATA_t;
 
 typedef struct RawFrame_t RawFrame_t;
@@ -87,6 +97,7 @@ typedef struct
     BD_PCMD_t dataPCMD;
     BD_Cam_t dataCam;
     BD_states_t flightStates;
+    TRAJECTORY_t hoverTraj;
     
     ARCODECS_Manager_t *decoder;
     int decodingCanceled;
@@ -109,6 +120,8 @@ typedef struct
     ARSAL_Thread_t *readerThreads;
     READER_THREAD_DATA_t *readerThreadsData;
     int run;
+
+    int PID_on;
     
     IHM_t *ihm;
 } BD_MANAGER_t;
@@ -164,6 +177,7 @@ void flyingStateChangedCallback (eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATEC
 void altitudeCallback(double altitude, void *custom);
 void attitudeCallback(float roll, float pitch, float yaw, void *custom);
 void velocityCallback(float Vx, float Vy, float Vz, void* custom);
+void followTrajectory(TRAJECTORY_t traj, void* custom);
 
 /** IHM callbacks **/
 void onInputEvent (eIHM_INPUT_EVENT event, void *customData);

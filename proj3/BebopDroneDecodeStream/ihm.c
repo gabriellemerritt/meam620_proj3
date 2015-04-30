@@ -301,6 +301,13 @@ void *IHM_InputProcessing(void *data)
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF_LANDING, ihm->customData);
                 }
             }
+            else if(key == 'h')
+            {
+                if(ihm->onInputEventCallback != NULL)
+                {
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_HOVER, ihm->customData);
+                }
+            }
             else
             {
                 if(ihm->onInputEventCallback != NULL)
