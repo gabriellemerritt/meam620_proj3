@@ -92,9 +92,9 @@
 #define KPY 300
 #define KPZ 300
 
-#define KDX 0
-#define KDY 0
-#define KDZ 0
+#define KDX 200
+#define KDY 200
+#define KDZ 200
 
 FILE *bebop_logging;
 
@@ -420,12 +420,15 @@ int main (int argc, char *argv[])
     deviceManager->flightStates.x_cur = 0;
     deviceManager->flightStates.y_cur = 0;
     deviceManager->Traj_on = 0;
+    deviceManager->hoverTraj.ax_des = 0;
+    deviceManager->hoverTraj.ay_des = 0;
+    deviceManager->hoverTraj.az_des = 0;
     deviceManager->hoverTraj.vx_des = 0;
     deviceManager->hoverTraj.vy_des = 0;
     deviceManager->hoverTraj.vz_des = 0;
     deviceManager->hoverTraj.x_des = 0;
     deviceManager->hoverTraj.y_des = 0;
-    deviceManager->hoverTraj.z_des = 1;
+    deviceManager->hoverTraj.z_des = -1;
 
     pid_t child = 0;
     bebop_logging = fopen("bebop_logger.txt", "w"); 
@@ -1362,7 +1365,7 @@ void altitudeCallback(double altitude, void *custom)
     if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
     {
        IHM_PrintAltitude(deviceManager->ihm, altitude);
-       deviceManager->flightStates.z_cur=altitude; 
+       deviceManager->flightStates.z_cur= -altitude; 
     }
 }
 
@@ -1874,12 +1877,14 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     float ax_des, ay_des, yaw;
     yaw = deviceManager->flightStates.yaw_cur;
     //find desired acceleration in the x and y direction
-    ax_des = KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
-    ay_des = KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+    //ax_des = deviceManager->hoverTraj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+    //ay_des = deviceManager->hoverTraj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+    ax_des = traj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+    ay_des = traj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
     //put them into desired angle for the attitude controller
-    deviceManager->dataPCMD.roll = (1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
-    deviceManager->dataPCMD.pitch =(1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
-    deviceManager->dataPCMD.gaz = traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur);
+    deviceManager->dataPCMD.roll = -(1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
+    deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
+    deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
     //print for debug
     IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
 }
@@ -1902,10 +1907,14 @@ void generateTrajectory(void *customData)
     if(t <= t1)
     {
         deviceManager->hoverTraj.x_des = a1*pow(t,3) + b1*pow(t,2) + c1*t + d1 + deviceManager->hoverTraj.x_offset;
+        deviceManager->hoverTraj.vx_des = 3*a1*pow(t,2) + 2*b1*t + c1;
+        deviceManager->hoverTraj.ax_des = 6*a1*t + 2*b1;
     }
     else if(t >= t1 && t <= t2)
     {
         deviceManager->hoverTraj.x_des = a2*pow(t,3) + b2*pow(t,2) + c2*t + d2 + deviceManager->hoverTraj.x_offset;
+        deviceManager->hoverTraj.vx_des = 3*a2*pow(t,2) + 2*b2*t + c2;
+        deviceManager->hoverTraj.ax_des = 6*a2*t + 2*b2;
     }
     else
     {
