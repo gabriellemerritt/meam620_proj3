@@ -10,7 +10,7 @@ LDIR = $(SDK_DIR)/Targets/Unix/Install/lib
 
 EXTERNAL_LIB=-lncurses -lavcodec -lavformat -lswscale -lavutil
 
-LIBS=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal -larcommands -larnetwork -larnetworkal -lardiscovery -larstream $(EXTERNAL_LIB)
+LIBS=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal -larcommands -larnetwork -larnetworkal -lardiscovery -larstream -lm $(EXTERNAL_LIB)
 LIBS_DBG=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal_dbg -larcommands_dbg -larnetwork_dbg -larnetworkal_dbg -lardiscovery_dbg -larstream_dbg $(EXTERNAL_LIB)
 
 _DEPS = BebopDroneDecodeStream.h DecoderManager.h ihm.h

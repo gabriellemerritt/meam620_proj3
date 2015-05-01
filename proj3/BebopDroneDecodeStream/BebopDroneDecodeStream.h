@@ -65,12 +65,19 @@ typedef struct
 
 typedef struct 
 {
+    float ax_des;
+    float ay_des;
+    float az_des;
     float vx_des;
     float vy_des;
     float vz_des;
     float x_des;
     float y_des;
     float z_des;
+    float x_offset;
+    float y_offset;
+    float z_offset;
+    clock_t trajStartTime;
 } TRAJECTORY_t;
 
 typedef struct READER_THREAD_DATA_t READER_THREAD_DATA_t;
@@ -121,8 +128,8 @@ typedef struct
     READER_THREAD_DATA_t *readerThreadsData;
     int run;
 
-    int PID_on;
-    
+    int Traj_on;
+        
     IHM_t *ihm;
 } BD_MANAGER_t;
 
@@ -178,6 +185,7 @@ void altitudeCallback(double altitude, void *custom);
 void attitudeCallback(float roll, float pitch, float yaw, void *custom);
 void velocityCallback(float Vx, float Vy, float Vz, void* custom);
 void followTrajectory(TRAJECTORY_t traj, void* custom);
+void generateTrajectory(void* custom);
 
 /** IHM callbacks **/
 void onInputEvent (eIHM_INPUT_EVENT event, void *customData);

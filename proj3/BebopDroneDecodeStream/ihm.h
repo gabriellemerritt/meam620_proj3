@@ -47,7 +47,7 @@ typedef enum
     IHM_INPUT_EVENT_YAW_RIGHT,
     IHM_INPUT_EVENT_UP,
     IHM_INPUT_EVENT_DOWN,
-    IHM_INPUT_EVENT_HOVER,
+    IHM_INPUT_EVENT_TRAJ,
     IHM_INPUT_EVENT_CAM_LEFT,
     IHM_INPUT_EVENT_CAM_RIGHT,
     IHM_INPUT_EVENT_CAM_UP,
@@ -80,5 +80,7 @@ void IHM_PrintAltitude(IHM_t *ihm, double altitude);
 void IHM_PrintAttitude(IHM_t *ihm, float roll, float pitch, float yaw);
 void IHM_PrintVelocity(IHM_t *ihm, float Vx, float Vy, float Vz);
 void IHM_PrintPosition(IHM_t *ihm, float X, float Y);
+void IHM_ShowState(IHM_t *ihm, char *state);
+void IHM_ShowDes(IHM_t *ihm, float x_des, float y_des, float ax_des, float ay_des, float roll_cmd, float pitch_cmd);
 
 #endif /* _BEBOPDRONE_DECODE_IHM_H_ */

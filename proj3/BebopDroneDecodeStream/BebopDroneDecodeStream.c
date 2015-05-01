@@ -89,13 +89,13 @@
 
 #define ERROR_STR_LENGTH 2048
 
-#define KPX 50
-#define KPY 50
-#define KPZ 50
+#define KPX 300
+#define KPY 300
+#define KPZ 300
 
-#define KDX 10
-#define KDY 10
-#define KDZ 10
+#define KDX 200
+#define KDY 200
+#define KDZ 200
 
 FILE *bebop_logging;
 
@@ -424,13 +424,16 @@ int main (int argc, char *argv[])
     /* initialize some states in deviceManager */
     deviceManager->flightStates.x_cur = 0;
     deviceManager->flightStates.y_cur = 0;
-    deviceManager->PID_on = 0;
+    deviceManager->Traj_on = 0;
+    deviceManager->hoverTraj.ax_des = 0;
+    deviceManager->hoverTraj.ay_des = 0;
+    deviceManager->hoverTraj.az_des = 0;
     deviceManager->hoverTraj.vx_des = 0;
     deviceManager->hoverTraj.vy_des = 0;
     deviceManager->hoverTraj.vz_des = 0;
     deviceManager->hoverTraj.x_des = 0;
     deviceManager->hoverTraj.y_des = 0;
-    deviceManager->hoverTraj.z_des = 1;
+    deviceManager->hoverTraj.z_des = -1;
 
     // testing traj_gen 
 
@@ -1373,7 +1376,7 @@ void altitudeCallback(double altitude, void *custom)
     if ((deviceManager != NULL) && (deviceManager->ihm != NULL))
     {
        IHM_PrintAltitude(deviceManager->ihm, altitude);
-       deviceManager->flightStates.z_cur=altitude; 
+       deviceManager->flightStates.z_cur= -altitude; 
     }
 }
 
@@ -1823,23 +1826,25 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 }
             }
             break;
-        case IHM_INPUT_EVENT_HOVER:
+        case IHM_INPUT_EVENT_TRAJ:
             if(deviceManager != NULL)
             {
-                if(deviceManager->PID_on == 0)
+                if(deviceManager->Traj_on == 0)
                 {
-                    deviceManager->PID_on = 1;
+                    deviceManager->Traj_on = 1;
+                    IHM_ShowState(deviceManager->ihm, "TRAJJJJ ON");
+                    deviceManager->hoverTraj.trajStartTime = clock();
+                    deviceManager->hoverTraj.x_offset = deviceManager->flightStates.x_cur;
+                    deviceManager->hoverTraj.y_offset = deviceManager->flightStates.y_cur;
+                    deviceManager->hoverTraj.z_offset = deviceManager->flightStates.z_cur;
                 }
-                else
-                {
-                    deviceManager->PID_on = 0;
-                }
+                
             }
             break;
         case IHM_INPUT_EVENT_NONE:
             if(deviceManager != NULL)
             {
-                if (deviceManager->PID_on == 0)
+                if (deviceManager->Traj_on == 0)
                 {
                     deviceManager->dataPCMD.flag = 0;
                     deviceManager->dataPCMD.roll = 0;
@@ -1849,7 +1854,9 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 }
                 else
                 {
-                    followTrajectory(deviceManager->hoverTraj, deviceManager);
+                    deviceManager->dataPCMD.flag = 1;
+                    generateTrajectory(deviceManager);
+                    followTrajectory(deviceManager->hoverTraj, deviceManager);                    
                 }
                 
             }
@@ -1881,11 +1888,48 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     float ax_des, ay_des, yaw;
     yaw = deviceManager->flightStates.yaw_cur;
     //find desired acceleration in the x and y direction
-    ax_des = KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
-    ay_des = KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+    //ax_des = deviceManager->hoverTraj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+    //ay_des = deviceManager->hoverTraj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+    ax_des = traj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+    ay_des = traj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
     //put them into desired angle for the attitude controller
-    deviceManager->dataPCMD.roll = 1/9.81*(ax_des*sin(yaw) - ay_des*cos(yaw));
-    deviceManager->dataPCMD.pitch = 1/9.81*(ax_des*cos(yaw) + ay_des*sin(yaw));
-    deviceManager->dataPCMD.gaz = traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur);
+    deviceManager->dataPCMD.roll = -(1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
+    deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
+    deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+    //print for debug
+    IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
 }
 
+void generateTrajectory(void *customData)
+{
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
+    float t;
+    float t1 = 3;
+    float t2 = 6;
+    static float a1 = -0.0602;
+    static float b1 = 0.2917;
+    static float c1 = 0;
+    static float d1 = 0;
+    static float a2 = 0.0509;
+    static float b2 = -0.7083;
+    static float c2 = 3;
+    static float d2 = -3;
+    t = (float)(clock() - deviceManager->hoverTraj.trajStartTime)/CLOCKS_PER_SEC;
+    if(t <= t1)
+    {
+        deviceManager->hoverTraj.x_des = a1*pow(t,3) + b1*pow(t,2) + c1*t + d1 + deviceManager->hoverTraj.x_offset;
+        deviceManager->hoverTraj.vx_des = 3*a1*pow(t,2) + 2*b1*t + c1;
+        deviceManager->hoverTraj.ax_des = 6*a1*t + 2*b1;
+    }
+    else if(t >= t1 && t <= t2)
+    {
+        deviceManager->hoverTraj.x_des = a2*pow(t,3) + b2*pow(t,2) + c2*t + d2 + deviceManager->hoverTraj.x_offset;
+        deviceManager->hoverTraj.vx_des = 3*a2*pow(t,2) + 2*b2*t + c2;
+        deviceManager->hoverTraj.ax_des = 6*a2*t + 2*b2;
+    }
+    else
+    {
+        deviceManager->hoverTraj.trajStartTime = clock();
+        deviceManager->Traj_on = 0;
+    }
+}
