@@ -60,6 +60,7 @@
 #include <math.h>
 
 #include "BebopDroneDecodeStream.h"
+#include "traj_gen.h"
 
 /*****************************************
  *
@@ -413,7 +414,11 @@ void *looperRun (void* data)
 int main (int argc, char *argv[])
 {
     /* local declarations */
+    int line_number = 0; 
     int failed = 0;
+    char *file_name = "test_traj.txt";
+
+    COEFF_t *coef = malloc(sizeof(COEFF_t));
     BD_MANAGER_t *deviceManager = malloc(sizeof(BD_MANAGER_t));
 
     /* initialize some states in deviceManager */
@@ -426,6 +431,12 @@ int main (int argc, char *argv[])
     deviceManager->hoverTraj.x_des = 0;
     deviceManager->hoverTraj.y_des = 0;
     deviceManager->hoverTraj.z_des = 1;
+
+    // testing traj_gen 
+
+    test = readTrajectory(coef, file_name, line_number); 
+    printf("Error number is %i",test); 
+
 
     pid_t child = 0;
     bebop_logging = fopen("bebop_logger.txt", "w"); 

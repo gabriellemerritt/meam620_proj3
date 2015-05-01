@@ -1,4 +1,4 @@
-/*
+ /*
     Copyright (C) 2014 Parrot SA
 
     Redistribution and use in source and binary forms, with or without
