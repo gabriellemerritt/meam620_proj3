@@ -81,6 +81,9 @@
 #define NEWSTATE_X 0
 #define NEWSTATE_Y 17
 
+#define DES_X 0
+#define DES_Y 18
+
 /*****************************************
  *
  *             private header:
@@ -304,11 +307,11 @@ void *IHM_InputProcessing(void *data)
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF_LANDING, ihm->customData);
                 }
             }
-            else if(key == 'h')
+            else if(key == 't')
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
-                    ihm->onInputEventCallback (IHM_INPUT_EVENT_HOVER, ihm->customData);
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_TRAJ, ihm->customData);
                 }
             }
             else
@@ -413,5 +416,15 @@ void IHM_ShowState(IHM_t *ihm, char *state)
         move(NEWSTATE_Y, 0);
         clrtoeol();
         mvprintw(NEWSTATE_Y, NEWSTATE_X, "Input State: %s", state);
+    }
+}
+
+void IHM_ShowDes(IHM_t *ihm, float x_des, float y_des, float ax_des, float ay_des, float roll_cmd, float pitch_cmd)
+{
+    if (ihm != NULL)
+    {
+        move(DES_Y, 0);
+        clrtoeol();
+        mvprintw(DES_Y, DES_X, "DESX: %.5f, DESY: %.5f, ax_des: %.5f, ay_des %.5f, roll_cmd %.5f, pitch_cmd %.5f", x_des, y_des, ax_des, ay_des, roll_cmd, pitch_cmd);
     }
 }
