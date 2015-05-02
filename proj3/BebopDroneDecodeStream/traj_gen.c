@@ -23,13 +23,13 @@ by Lou Lin and Gabby Merritt
 #include "BebopDroneDecodeStream.h"
 #include "traj_gen.h"
 
-#define KPX 50
-#define KPY 50
-#define KPZ 50
+#define KPX 300
+#define KPY 300
+#define KPZ 300
 
-#define KDX 10
-#define KDY 10
-#define KDZ 10 
+#define KDX 200
+#define KDY 200
+#define KDZ 200
 
 
 // volatile int line_number; 
@@ -39,15 +39,19 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
 {
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
 
-    float ax_des, ay_des, yaw;
-    yaw = deviceManager->flightStates.yaw_cur;
-    //find desired acceleration in the x and y direction
-    ax_des = KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
-    ay_des = KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+     float ax_des, ay_des, yaw;
+     yaw = deviceManager->flightStates.yaw_cur;
+     //find desired acceleration in the x and y direction
+     //ax_des = deviceManager->hoverTraj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+     //ay_des = deviceManager->hoverTraj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+    ax_des = traj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+    ay_des = traj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
     //put them into desired angle for the attitude controller
-    deviceManager->dataPCMD.roll = 1/9.81*(ax_des*sin(yaw) - ay_des*cos(yaw));
-    deviceManager->dataPCMD.pitch = 1/9.81*(ax_des*cos(yaw) + ay_des*sin(yaw));
-    deviceManager->dataPCMD.gaz = traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur);
+    deviceManager->dataPCMD.roll = -(1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
+    deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
+    deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+    //print for debug
+    IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
 }
 
 
