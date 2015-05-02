@@ -60,7 +60,7 @@
 #include <math.h>
 
 #include "BebopDroneDecodeStream.h"
-#include "traj_gen.h"
+// #include "traj_gen.h"
 
 /*****************************************
  *
@@ -98,6 +98,8 @@
 #define KDZ 200
 
 FILE *bebop_logging;
+FILE *traj_log; 
+volatile int line_num; 
 
 int getNextDataCallback(uint8_t **data, void *customData);
 void* Decode_RunDataThread(void *customData);
@@ -402,7 +404,12 @@ void *looperRun (void* data)
                 t_elapsed,deviceManager->flightStates.roll_cur , deviceManager->flightStates.pitch_cur, 
                 deviceManager->flightStates.yaw_cur, deviceManager->flightStates.x_cur, deviceManager->flightStates.y_cur,
                 deviceManager->flightStates.z_cur, deviceManager->flightStates.vx_cur, deviceManager->flightStates.vy_cur,
-                deviceManager->flightStates.vz_cur);  
+                deviceManager->flightStates.vz_cur);
+            fprintf(traj_log, "PATH TIME: %f \n COEFF : %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", deviceManager->coef.traj_time ,deviceManager->coef.coef_x[0],
+                deviceManager->coef.coef_x[1], deviceManager->coef.coef_x[2], deviceManager->coef.coef_x[3], deviceManager->coef.coef_x[4], deviceManager->coef.coef_x[5],
+                deviceManager->coef.coef_y[0], deviceManager->coef.coef_y[1], deviceManager->coef.coef_y[2],deviceManager->coef.coef_y[3],deviceManager->coef.coef_y[4],
+                deviceManager->coef.coef_y[5], deviceManager->coef.coef_z[0], deviceManager->coef.coef_z[1], deviceManager->coef.coef_z[2],deviceManager->coef.coef_z[3], 
+                deviceManager->coef.coef_z[4], deviceManager->coef.coef_z[5]); 
 
             usleep(50000);
         }
@@ -414,12 +421,32 @@ void *looperRun (void* data)
 int main (int argc, char *argv[])
 {
     /* local declarations */
+    line_num = 0; 
+    FILE *test_t; 
+    test_t= fopen("test_traj_log.txt","w"); 
+    float test; 
     int line_number = 0; 
     int failed = 0;
     char *file_name = "test_traj.txt";
 
-    COEFF_t *coef = malloc(sizeof(COEFF_t));
+    // COEFF_t *coef = malloc(sizeof(COEFF_t));
     BD_MANAGER_t *deviceManager = malloc(sizeof(BD_MANAGER_t));
+
+     /* initialize some states in deviceManager */
+     // deviceManager->coef = { 100, {0,0,0,0,0,0}, {0,0,0,0,0,0}, {0,0,0,0,0,0}}; 
+
+    line_num =readTrajectory(file_name, line_num ,deviceManager); 
+     line_num = readTrajectory(file_name, line_num, deviceManager);
+    // line_num = readTrajectory(file_name, line_num,deviceManager); 
+    // line_num = readTrajectory(file_name, line_num, deviceManager);
+    printf ("the line number is : %i", line_num); 
+     fprintf(test_t, "PATH TIME: %f \n COEFF : %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", deviceManager->coef.traj_time ,deviceManager->coef.coef_x[0],
+                deviceManager->coef.coef_x[1], deviceManager->coef.coef_x[2], deviceManager->coef.coef_x[3], deviceManager->coef.coef_x[4], deviceManager->coef.coef_x[5],
+                deviceManager->coef.coef_y[0], deviceManager->coef.coef_y[1], deviceManager->coef.coef_y[2],deviceManager->coef.coef_y[3],deviceManager->coef.coef_y[4],
+                deviceManager->coef.coef_y[5], deviceManager->coef.coef_z[0], deviceManager->coef.coef_z[1], deviceManager->coef.coef_z[2],deviceManager->coef.coef_z[3], 
+                deviceManager->coef.coef_z[4], deviceManager->coef.coef_z[5]); 
+     fclose(test_t);
+
 
     /* initialize some states in deviceManager */
     deviceManager->flightStates.x_cur = 0;
@@ -437,16 +464,21 @@ int main (int argc, char *argv[])
 
     // testing traj_gen 
 
-    test = readTrajectory(coef, file_name, line_number); 
-    printf("Error number is %i",test); 
+    // test = readTrajectory(*coef, file_name, line_number); 
+    // printf("last number %f",test); 
 
 
     pid_t child = 0;
     bebop_logging = fopen("bebop_logger.txt", "w"); 
     if(bebop_logging == NULL)
     {
-        printf("Error Opening File"); 
-    } 
+        printf("Error Opening bebop_log"); 
+    }  
+    traj_log = fopen("traj_log.txt", "w"); 
+    if(traj_log == NULL)
+    {
+        printf("Error Opening traj_log");
+    }
 
     
     // fork the process to launch ffplay
@@ -704,6 +736,7 @@ int main (int argc, char *argv[])
         stopNetwork (deviceManager);
         fclose (deviceManager->video_out);
         fclose(bebop_logging); 
+        fclose(traj_log); 
         free (deviceManager);
     }
 
@@ -1881,55 +1914,55 @@ int customPrintCallback (eARSAL_PRINT_LEVEL level, const char *tag, const char *
 }
 
 //*******************************Controller***************************************/
-void followTrajectory(TRAJECTORY_t traj, void *customData)
-{
-    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
+// void followTrajectory(TRAJECTORY_t traj, void *customData)
+// {
+//     BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
 
-    float ax_des, ay_des, yaw;
-    yaw = deviceManager->flightStates.yaw_cur;
-    //find desired acceleration in the x and y direction
-    //ax_des = deviceManager->hoverTraj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
-    //ay_des = deviceManager->hoverTraj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
-    ax_des = traj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
-    ay_des = traj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
-    //put them into desired angle for the attitude controller
-    deviceManager->dataPCMD.roll = -(1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
-    deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
-    deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
-    //print for debug
-    IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
-}
+//     float ax_des, ay_des, yaw;
+//     yaw = deviceManager->flightStates.yaw_cur;
+//     //find desired acceleration in the x and y direction
+//     //ax_des = deviceManager->hoverTraj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+//     //ay_des = deviceManager->hoverTraj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+//     ax_des = traj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
+//     ay_des = traj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
+//     //put them into desired angle for the attitude controller
+//     deviceManager->dataPCMD.roll = -(1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
+//     deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
+//     deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+//     //print for debug
+//     IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
+// }
 
-void generateTrajectory(void *customData)
-{
-    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
-    float t;
-    float t1 = 3;
-    float t2 = 6;
-    static float a1 = -0.0602;
-    static float b1 = 0.2917;
-    static float c1 = 0;
-    static float d1 = 0;
-    static float a2 = 0.0509;
-    static float b2 = -0.7083;
-    static float c2 = 3;
-    static float d2 = -3;
-    t = (float)(clock() - deviceManager->hoverTraj.trajStartTime)/CLOCKS_PER_SEC;
-    if(t <= t1)
-    {
-        deviceManager->hoverTraj.x_des = a1*pow(t,3) + b1*pow(t,2) + c1*t + d1 + deviceManager->hoverTraj.x_offset;
-        deviceManager->hoverTraj.vx_des = 3*a1*pow(t,2) + 2*b1*t + c1;
-        deviceManager->hoverTraj.ax_des = 6*a1*t + 2*b1;
-    }
-    else if(t >= t1 && t <= t2)
-    {
-        deviceManager->hoverTraj.x_des = a2*pow(t,3) + b2*pow(t,2) + c2*t + d2 + deviceManager->hoverTraj.x_offset;
-        deviceManager->hoverTraj.vx_des = 3*a2*pow(t,2) + 2*b2*t + c2;
-        deviceManager->hoverTraj.ax_des = 6*a2*t + 2*b2;
-    }
-    else
-    {
-        deviceManager->hoverTraj.trajStartTime = clock();
-        deviceManager->Traj_on = 0;
-    }
-}
+// void generateTrajectory(void *customData)
+// {
+//     BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
+//     float t;
+//     float t1 = 3;
+//     float t2 = 6;
+//     static float a1 = -0.0602;
+//     static float b1 = 0.2917;
+//     static float c1 = 0;
+//     static float d1 = 0;
+//     static float a2 = 0.0509;
+//     static float b2 = -0.7083;
+//     static float c2 = 3;
+//     static float d2 = -3;
+//     t = (float)(clock() - deviceManager->hoverTraj.trajStartTime)/CLOCKS_PER_SEC;
+//     if(t <= t1)
+//     {
+//         deviceManager->hoverTraj.x_des = a1*pow(t,3) + b1*pow(t,2) + c1*t + d1 + deviceManager->hoverTraj.x_offset;
+//         deviceManager->hoverTraj.vx_des = 3*a1*pow(t,2) + 2*b1*t + c1;
+//         deviceManager->hoverTraj.ax_des = 6*a1*t + 2*b1;
+//     }
+//     else if(t >= t1 && t <= t2)
+//     {
+//         deviceManager->hoverTraj.x_des = a2*pow(t,3) + b2*pow(t,2) + c2*t + d2 + deviceManager->hoverTraj.x_offset;
+//         deviceManager->hoverTraj.vx_des = 3*a2*pow(t,2) + 2*b2*t + c2;
+//         deviceManager->hoverTraj.ax_des = 6*a2*t + 2*b2;
+//     }
+//     else
+//     {
+//         deviceManager->hoverTraj.trajStartTime = clock();
+//         deviceManager->Traj_on = 0;
+//     }
+// }

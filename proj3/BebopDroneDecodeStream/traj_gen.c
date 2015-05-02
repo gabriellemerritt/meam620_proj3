@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <math.h> 
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
@@ -18,6 +19,7 @@
 #include <libARStream/ARStream.h>
 #include <time.h> 
 #include "BebopDroneDecodeStream.h"
+#include "traj_gen.h"
 
 #define KPX 50
 #define KPY 50
@@ -27,7 +29,7 @@
 #define KDY 10
 #define KDZ 10 
 
-volatile int line_number; 
+// volatile int line_number; 
 
 
 void followTrajectory(TRAJECTORY_t traj, void *customData)
@@ -46,63 +48,102 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
 }
 
 
-void genTrajectory (TRAJECTORY_t traj, COEFF_t coef, void *customData, float t) 
-{
-	BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;  
-	// setting desired position 
-	traj.x_des = coef.coef_x[0] + coef.coef_x[1]*t + coef.coef_x[2]*t^2 + coef.coef_x[3]*t^3 + coef.coef_x[4]*t^4 +coef.coef_x[5]*t^5; 
-	traj.y_des = coef.coef_y[0] + coef.coef_y[1]*t + coef.coef_y[2]*t^2 + coef.coef_y[3]*t^3 + coef.coef_y[4]*t^4 +coef.coef_y[5]*t^5;
-	traj.z_des = coef.coef_z[0] + coef.coef_z[1]*t + coef.coef_z[2]*t^2 + coef.coef_z[3]*t^3 + coef.coef_z[4]*t^4 +coef.coef_z[5]*t^5;
+// void genTrajectory (TRAJECTORY_t traj, COEFF_t coef, void *customData, float t) 
+// {
+// 	BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;  
+// 	// setting desired position 
+// 	traj.x_des = coef.coef_x[0] + coef.coef_x[1]*t + coef.coef_x[2]*pow(t,2) + coef.coef_x[3]*pow(t,3)+ coef.coef_x[4]*pow(t,4) +coef.coef_x[5]*pow(t,5); 
+// 	// traj.y_des = coef.coef_y[0] + coef.coef_y[1]*t + coef.coef_y[2]*t^2 + coef.coef_y[3]*t^3 + coef.coef_y[4]*t^4 +coef.coef_y[5]*t^5;
+// 	// traj.z_des = coef.coef_z[0] + coef.coef_z[1]*t + coef.coef_z[2]*t^2 + coef.coef_z[3]*t^3 + coef.coef_z[4]*t^4 +coef.coef_z[5]*t^5;
 
-	// // setting desired velocity 
-	traj.vx_des =  
-	traj.vy_des = 
-	traj.vz_des = 
+// 	// // setting desired velocity 
+// 	// traj.vx_des =  
+// 	// traj.vy_des = 
+// 	// traj.vz_des = 
 
-	       //vel(2) = a(2,2) + 2*a(3,2)*t + 3*a(4,2)*t^2 + 4*a(5,2)*t^3 + 5*a(6,2)*t^4 ; 
-
-
+// 	       //vel(2) = a(2,2) + 2*a(3,2)*t + 3*a(4,2)*t^2 + 4*a(5,2)*t^3 + 5*a(6,2)*t^4 ; 
 
 
-}
 
-// return 0 if succesfully read line  
-// return 1  if can't open file  
-// return 2  ??? 
-int readTrajectory (COEFF_t coef, const char* file_name, line_number)
+
+// }
+
+// return positive int if succesfully read line  
+// return -1  if can't open file  
+// return -2  ??? 
+int readTrajectory (const char* file_name, int line_number, void *customData)
 { 
+
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
+
 	FILE *traj_file; 
 	traj_file = fopen(file_name, "r"); 
 	if (!traj_file)
 	{
 		printf("Can't Open File \n"); 
-		return 1; // file error 
+		return -1; // file error 
 	}
 	char line[1024]; 
-	count = 0; 
-	char* pEnd;
-    if(fgets(line, sizeof(line), traj_file) != NULL) /* read a line */
-    {
+	int count = 0; 
+     while(fgets(line, sizeof(line), traj_file) != NULL) /* read a line */
+     {
         if (count == line_number)
-        {
+         {
+            fgets(line, sizeof(line), traj_file); /* read a line */
+
             sscanf(line, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", 
-            &coef.traj_time, &coef.coef_x[0],&coef.coef_x[1], &coef.coef_x[2], &coef.coef_x[3],
-             &coef.coef_x[4],&coef.coef_x[5], &coef.coef_y[0],&coef.coef_y[1],&coef.coef_y[2],
-             &coef.coef_y[3],&coef.coef_y[4],&coef.coef_y[5], &coef.coef_z[0], &coef.coef_z[1],
-             &coef.coef_z[2],&coef.coef_z[3],&coef.coef_z[4],&coef.coef_z[5]);  // sscanf to parse line file into floats then put those in arrays
+             &deviceManager->coef.traj_time, &deviceManager->coef.coef_x[0],&deviceManager->coef.coef_x[1], &deviceManager->coef.coef_x[2], &deviceManager->coef.coef_x[3],
+             &deviceManager->coef.coef_x[4],&deviceManager->coef.coef_x[5], &deviceManager->coef.coef_y[0],&deviceManager->coef.coef_y[1],&deviceManager->coef.coef_y[2],
+             &deviceManager->coef.coef_y[3],&deviceManager->coef.coef_y[4],&deviceManager->coef.coef_y[5], &deviceManager->coef.coef_z[0], &deviceManager->coef.coef_z[1],
+             &deviceManager->coef.coef_z[2],&deviceManager->coef.coef_z[3],&deviceManager->coef.coef_z[4],&deviceManager->coef.coef_z[5]);  // sscanf to parse line file into floats then put those in arrays
 
-            return 0; 
+            return line_number+1; 
 
-            printf(coef.coef_z[5]); 
-        }
+            printf("last number is : %f", deviceManager->coef.traj_time); 
+           }
         else
-        {
-            count++;
-        }
-    }
-    return 2; 
+         {
+             count++;
+         }
+     }
+    return -2; 
 
 }
+
+void generateTrajectory(void *customData)
+{
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
+    float t;
+    float t1 = 3;
+    float t2 = 6;
+    static float a1 = -0.0602;
+    static float b1 = 0.2917;
+    static float c1 = 0;
+    static float d1 = 0;
+    static float a2 = 0.0509;
+    static float b2 = -0.7083;
+    static float c2 = 3;
+    static float d2 = -3;
+    t = (float)(clock() - deviceManager->hoverTraj.trajStartTime)/CLOCKS_PER_SEC;
+    if(t <= t1)
+    {
+        deviceManager->hoverTraj.x_des = a1*pow(t,3) + b1*pow(t,2) + c1*t + d1 + deviceManager->hoverTraj.x_offset;
+        deviceManager->hoverTraj.vx_des = 3*a1*pow(t,2) + 2*b1*t + c1;
+        deviceManager->hoverTraj.ax_des = 6*a1*t + 2*b1;
+    }
+    else if(t >= t1 && t <= t2)
+    {
+        deviceManager->hoverTraj.x_des = a2*pow(t,3) + b2*pow(t,2) + c2*t + d2 + deviceManager->hoverTraj.x_offset;
+        deviceManager->hoverTraj.vx_des = 3*a2*pow(t,2) + 2*b2*t + c2;
+        deviceManager->hoverTraj.ax_des = 6*a2*t + 2*b2;
+    }
+    else
+    {
+        deviceManager->hoverTraj.trajStartTime = clock();
+        deviceManager->Traj_on = 0;
+    }
+}
+
 
 
 

@@ -34,6 +34,7 @@
 #include <ihm.h>
 #include <DecoderManager.h>
 #include <libARCommands/ARCommands.h>
+//#include "traj_gen.h"
 
 typedef struct
 {
@@ -79,6 +80,16 @@ typedef struct
     float z_offset;
     clock_t trajStartTime;
 } TRAJECTORY_t;
+
+
+typedef struct 
+{
+    float coef_x[6]; 
+    float coef_y[6]; 
+    float coef_z[6];
+    float traj_time;  
+
+}COEFF_t; 
 
 typedef struct READER_THREAD_DATA_t READER_THREAD_DATA_t;
 
@@ -131,6 +142,8 @@ typedef struct
     int Traj_on;
         
     IHM_t *ihm;
+
+    COEFF_t coef; // trajectory Coefficients 
 } BD_MANAGER_t;
 
 struct READER_THREAD_DATA_t
@@ -184,8 +197,8 @@ void flyingStateChangedCallback (eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATEC
 void altitudeCallback(double altitude, void *custom);
 void attitudeCallback(float roll, float pitch, float yaw, void *custom);
 void velocityCallback(float Vx, float Vy, float Vz, void* custom);
-void followTrajectory(TRAJECTORY_t traj, void* custom);
-void generateTrajectory(void* custom);
+// void followTrajectory(TRAJECTORY_t traj, void* custom);
+// void generateTrajectory(void* custom);
 
 /** IHM callbacks **/
 void onInputEvent (eIHM_INPUT_EVENT event, void *customData);
