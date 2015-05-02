@@ -203,6 +203,7 @@ void runTrajectory(void *customData, const char* file_name)
 {
 // point to deviceManager // 
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData; 
+    
     clock_t t_start;
     float t_elapsed; 
     int loop_runs; 

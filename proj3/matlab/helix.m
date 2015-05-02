@@ -49,6 +49,7 @@ a5 = coefficients(6);
 % z_accel = b*alpha;
 
 fileID = fopen('helixtraj.txt', 'w');
+fprintf(fileID, '\n');
 fprintf(fileID, '%0.9f',  total_time);
 fprintf(fileID,'%0.9f ',a0,a1,a2,a3,a4,a5);
 fclose(fileID);
