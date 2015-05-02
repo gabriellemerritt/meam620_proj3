@@ -48,29 +48,61 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
 }
 
 
-// void genTrajectory (TRAJECTORY_t traj, COEFF_t coef, void *customData, float t) 
-// {
-// 	BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;  
-// 	// setting desired position 
-// 	traj.x_des = coef.coef_x[0] + coef.coef_x[1]*t + coef.coef_x[2]*pow(t,2) + coef.coef_x[3]*pow(t,3)+ coef.coef_x[4]*pow(t,4) +coef.coef_x[5]*pow(t,5); 
-// 	// traj.y_des = coef.coef_y[0] + coef.coef_y[1]*t + coef.coef_y[2]*t^2 + coef.coef_y[3]*t^3 + coef.coef_y[4]*t^4 +coef.coef_y[5]*t^5;
-// 	// traj.z_des = coef.coef_z[0] + coef.coef_z[1]*t + coef.coef_z[2]*t^2 + coef.coef_z[3]*t^3 + coef.coef_z[4]*t^4 +coef.coef_z[5]*t^5;
+void genTrajectory (void *customData) 
+{
 
-// 	// // setting desired velocity 
-// 	// traj.vx_des =  
-// 	// traj.vy_des = 
-// 	// traj.vz_des = 
+    float t; 
+	BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData; 
+// current time  // 
+    
+    t = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
 
-// 	       //vel(2) = a(2,2) + 2*a(3,2)*t + 3*a(4,2)*t^2 + 4*a(5,2)*t^3 + 5*a(6,2)*t^4 ; 
+// setting desired position //
+
+	deviceManager->genTraj.x_des = deviceManager->coef.coef_x[0] + deviceManager->coef.coef_x[1]*t + deviceManager->coef.coef_x[2]*pow(t,2) + 
+                 deviceManager->coef.coef_x[3]*pow(t,3)+ deviceManager->coef.coef_x[4]*pow(t,4) 
+                 +deviceManager->coef.coef_x[5]*pow(t,5); 
+
+    deviceManager->genTraj.y_des = deviceManager->coef.coef_y[0] + deviceManager->coef.coef_y[1]*t + deviceManager->coef.coef_y[2]*pow(t,2) + 
+                 deviceManager->coef.coef_y[3]*pow(t,3)+ deviceManager->coef.coef_y[4]*pow(t,4) 
+                 +deviceManager->coef.coef_y[5]*pow(t,5); 
+
+    deviceManager->genTraj.z_des = deviceManager->coef.coef_z[0] + deviceManager->coef.coef_z[1]*t + deviceManager->coef.coef_z[2]*pow(t,2) + 
+                 deviceManager->coef.coef_z[3]*pow(t,3)+ deviceManager->coef.coef_z[4]*pow(t,4) 
+                 +deviceManager->coef.coef_z[5]*pow(t,5); 
+
+//setting desired velocity //
+
+	deviceManager->genTraj.vx_des =  deviceManager->coef.coef_x[1] + 2*deviceManager->coef.coef_x[2]*t + 3*deviceManager->coef.coef_x[3]*pow(t,2) +
+                   4*deviceManager->coef.coef_x[4]*pow(t,3) + 5*deviceManager->coef.coef_x[5]*pow(t,4);
 
 
+    deviceManager->genTraj.vy_des =  deviceManager->coef.coef_y[1] + 2*deviceManager->coef.coef_y[2]*t + 3*deviceManager->coef.coef_y[3]*pow(t,2) +
+                   4*deviceManager->coef.coef_y[4]*pow(t,3) + 5*deviceManager->coef.coef_y[5]*pow(t,4);
 
+    deviceManager->genTraj.vz_des =  deviceManager->coef.coef_z[1] + 2*deviceManager->coef.coef_z[2]*t + 3*deviceManager->coef.coef_z[3]*pow(t,2) +
+                   4*deviceManager->coef.coef_z[4]*pow(t,3) + 5*deviceManager->coef.coef_z[5]*pow(t,4);
 
-// }
+// Setting desired accelerations //
+
+    deviceManager->genTraj.ax_des = 2*deviceManager->coef.coef_x[2] + 6*deviceManager->coef.coef_x[3]*t + 12*deviceManager->coef.coef_x[4]*pow(t,2) + 
+                   20* deviceManager->coef.coef_x[5]*pow(t,3);
+    
+    deviceManager->genTraj.ay_des = 2*deviceManager->coef.coef_y[2] + 6*deviceManager->coef.coef_y[3]*t + 12*deviceManager->coef.coef_y[4]*pow(t,2) + 
+                   20* deviceManager->coef.coef_y[5]*pow(t,3);
+    
+    deviceManager->genTraj.az_des = 2*deviceManager->coef.coef_z[2] + 6*deviceManager->coef.coef_z[3]*t + 12*deviceManager->coef.coef_z[4]*pow(t,2) + 
+                   20* deviceManager->coef.coef_z[5]*pow(t,3);
+
+// Follow Traj using calculated desired values // 
+
+    followTrajectory(deviceManager->genTraj, deviceManager); 
+
+}
 
 // return positive int if succesfully read line  
 // return -1  if can't open file  
-// return -2  ??? 
+// return -2  finished reading file or unknown error 
 int readTrajectory (const char* file_name, int line_number, void *customData)
 { 
 
@@ -144,6 +176,61 @@ void generateTrajectory(void *customData)
     }
 }
 
+int lengthTrajectory(const char* file_name)
+{
+    FILE *traj_file; 
+    traj_file = fopen(file_name, "r"); 
+    if (!traj_file)
+    {
+        printf("Can't Open File \n"); 
+        return -1; // file error 
+    }
+    char line[1024]; 
+    int count = 0; 
+    while(fgets(line, sizeof(line), traj_file) != NULL) /* read a line */
+    {
+        count++; 
+    }
+    fclose(traj_file); 
+
+    return count; 
+
+}
+void runTrajectory(void *customData, const char* file_name)
+{
+// point to deviceManager // 
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData; 
+    clock_t t_start;
+    float t_elapsed; 
+    int loop_runs; 
+    int i; 
+
+// figure out how segments (from way point to way point) // 
+
+    loop_runs = lengthTrajectory(file_name); 
+
+// move from way point to way point 
+    for (i = 0; i< loop_runs; i++)
+    {
+        t_start = clock(); 
+
+       if(readTrajectory(file_name, i, deviceManager) > 0)
+        {
+            t_elapsed = (float)(clock() - t_start)/CLOCKS_PER_SEC;
+
+// while time is less than the time it takes to complete trajectory, calculate state, command roll, pitch, yaw and thrust 
+
+            while ( t_elapsed < deviceManager->coef.traj_time) 
+            {
+                genTrajectory(deviceManager); 
+                followTrajectory(deviceManager->genTraj, deviceManager);
+                t_elapsed = (float)(clock() - t_start)/CLOCKS_PER_SEC;
+            }        
+        }
+
+    }
+
+}
 
 
 

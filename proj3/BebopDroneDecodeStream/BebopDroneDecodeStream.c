@@ -421,34 +421,34 @@ void *looperRun (void* data)
 int main (int argc, char *argv[])
 {
     /* local declarations */
-    line_num = 0; 
-    FILE *test_t; 
-    test_t= fopen("test_traj_log.txt","w"); 
+    
+    // FILE *test_t; 
+    // test_t= fopen("test_traj_log.txt","w"); 
     float test; 
-    int line_number = 0; 
+    int line_number = 1; // actually the 3rd line in the file (file starts at -1)
     int failed = 0;
-    char *file_name = "test_traj.txt";
+    const char *file_name = "test_traj.txt";
 
-    // COEFF_t *coef = malloc(sizeof(COEFF_t));
     BD_MANAGER_t *deviceManager = malloc(sizeof(BD_MANAGER_t));
 
-     /* initialize some states in deviceManager */
-     // deviceManager->coef = { 100, {0,0,0,0,0,0}, {0,0,0,0,0,0}, {0,0,0,0,0,0}}; 
+/* // testing reading 
+    printf("Length of Trajectory file is: %i", lengthTrajectory(file_name)); 
 
-    line_num =readTrajectory(file_name, line_num ,deviceManager); 
-     line_num = readTrajectory(file_name, line_num, deviceManager);
-    // line_num = readTrajectory(file_name, line_num,deviceManager); 
-    // line_num = readTrajectory(file_name, line_num, deviceManager);
-    printf ("the line number is : %i", line_num); 
+    readTrajectory(file_name, line_number, deviceManager);
+
+    // printf ("the line number is : %i", line_num); 
+    // testing code 
+
      fprintf(test_t, "PATH TIME: %f \n COEFF : %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", deviceManager->coef.traj_time ,deviceManager->coef.coef_x[0],
                 deviceManager->coef.coef_x[1], deviceManager->coef.coef_x[2], deviceManager->coef.coef_x[3], deviceManager->coef.coef_x[4], deviceManager->coef.coef_x[5],
                 deviceManager->coef.coef_y[0], deviceManager->coef.coef_y[1], deviceManager->coef.coef_y[2],deviceManager->coef.coef_y[3],deviceManager->coef.coef_y[4],
                 deviceManager->coef.coef_y[5], deviceManager->coef.coef_z[0], deviceManager->coef.coef_z[1], deviceManager->coef.coef_z[2],deviceManager->coef.coef_z[3], 
                 deviceManager->coef.coef_z[4], deviceManager->coef.coef_z[5]); 
      fclose(test_t);
+*/
 
 
-    /* initialize some states in deviceManager */
+/* initialize some states in deviceManager */
     deviceManager->flightStates.x_cur = 0;
     deviceManager->flightStates.y_cur = 0;
     deviceManager->Traj_on = 0;
@@ -1872,6 +1872,24 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     deviceManager->hoverTraj.z_offset = deviceManager->flightStates.z_cur;
                 }
                 
+            }
+            break;
+        case IHM_INPUT_EVENT_GEN_TRAJ: 
+            if(deviceManager != NULL)
+            {
+                if(deviceManager->Traj_on == 0)
+                {
+                    deviceManager->Traj_on =1; 
+                    IHM_ShowState(deviceManager->ihm, "General Trajectory"); 
+                    deviceManager->genTraj.trajStartTime = clock();
+                    deviceManager->genTraj.x_offset = deviceManager->flightStates.x_cur;
+                    deviceManager->genTraj.y_offset = deviceManager->flightStates.y_cur;
+                    deviceManager->genTraj.z_offset = deviceManager->flightStates.z_cur; 
+                    // runTrajectory(deviceManager)
+                    
+                }
+
+
             }
             break;
         case IHM_INPUT_EVENT_NONE:

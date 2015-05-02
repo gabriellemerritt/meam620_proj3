@@ -314,8 +314,15 @@ void *IHM_InputProcessing(void *data)
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TRAJ, ihm->customData);
                 }
             }
-            else
+            else if (key == 'g')
             {
+                if(ihm ->onInputEventCallback != NULL)
+                {
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_GEN_TRAJ, ihm -> customData); 
+                }
+            }
+            else
+            { 
                 if(ihm->onInputEventCallback != NULL)
                 {
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);

@@ -116,6 +116,7 @@ typedef struct
     BD_Cam_t dataCam;
     BD_states_t flightStates;
     TRAJECTORY_t hoverTraj;
+    TRAJECTORY_t genTraj; 
     
     ARCODECS_Manager_t *decoder;
     int decodingCanceled;
