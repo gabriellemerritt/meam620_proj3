@@ -13,10 +13,10 @@ EXTERNAL_LIB=-lncurses -lavcodec -lavformat -lswscale -lavutil
 LIBS=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal -larcommands -larnetwork -larnetworkal -lardiscovery -larstream -lm $(EXTERNAL_LIB)
 LIBS_DBG=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal_dbg -larcommands_dbg -larnetwork_dbg -larnetworkal_dbg -lardiscovery_dbg -larstream_dbg $(EXTERNAL_LIB)
 
-_DEPS = BebopDroneDecodeStream.h DecoderManager.h ihm.h
+_DEPS = BebopDroneDecodeStream.h DecoderManager.h ihm.h traj_gen.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = BebopDroneDecodeStream.o DecoderManager.o ihm.o
+_OBJ = BebopDroneDecodeStream.o DecoderManager.o ihm.o traj_gen.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
 FIFO = video_decoded_fifo

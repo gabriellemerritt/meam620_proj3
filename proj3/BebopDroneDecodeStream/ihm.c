@@ -1,4 +1,4 @@
-/*
+ /*
     Copyright (C) 2014 Parrot SA
 
     Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,10 @@
  * @file ihm.c
  * @brief This file contains sources about ncurses IHM used by arsdk example "BebopDroneDecodeStream"
  * @date 15/01/2015
+ */
+
+ /*
+ Modified by Lou Lin and Gabby Merritt 
  */
 
 /*****************************************
@@ -314,8 +318,15 @@ void *IHM_InputProcessing(void *data)
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TRAJ, ihm->customData);
                 }
             }
-            else
+            else if (key == 'g')
             {
+                if(ihm ->onInputEventCallback != NULL)
+                {
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_GEN_TRAJ, ihm -> customData); 
+                }
+            }
+            else
+            { 
                 if(ihm->onInputEventCallback != NULL)
                 {
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
