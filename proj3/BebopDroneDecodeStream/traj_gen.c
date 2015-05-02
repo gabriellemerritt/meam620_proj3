@@ -1,4 +1,6 @@
-
+/* Trajectory Planning for ARDrone's Bebop 
+by Lou Lin and Gabby Merritt 
+*/ 
 
 
 #include <stdlib.h>
@@ -28,6 +30,7 @@
 #define KDX 10
 #define KDY 10
 #define KDZ 10 
+
 
 // volatile int line_number; 
 

@@ -34,6 +34,10 @@
  * @date 08/01/2015
  */
 
+ /*
+ Modified by Lou Lin and Gabby Merritt 
+ */
+
 /*****************************************
  *
  *             include file :
@@ -421,7 +425,7 @@ void *looperRun (void* data)
 int main (int argc, char *argv[])
 {
     /* local declarations */
-    
+
     // FILE *test_t; 
     // test_t= fopen("test_traj_log.txt","w"); 
     float test; 
