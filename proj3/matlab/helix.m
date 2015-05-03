@@ -31,7 +31,7 @@ a5 = coefficients(6);
 % %position
 % 
  r = 5; %m, radius
- z_max = 2.5; %m
+ z_max = -2.5; %m
 % b=z_max/(theta_max);
 % 
 % x = r*cos(theta)-r;
@@ -49,14 +49,13 @@ a5 = coefficients(6);
 % z_accel = b*alpha;
 
 fileID = fopen('helixtraj.txt', 'w');
-fprintf(fileID, '\n');
 fprintf(fileID, '%0.9f',  total_time);
 fprintf(fileID,'%0.9f ',a0,a1,a2,a3,a4,a5);
 fclose(fileID);
 
 %back to starting position
-a=[0,0,z_max].';
-b=[0,0,1].';
+a=[0,0,-z_max].';
+b=[0,0,-1].';
 [total_time, a0, a1, a2, a3, a4, a5] = line_ab_real(a, b);
 
 fileID = fopen('helixtraj.txt', 'a+');

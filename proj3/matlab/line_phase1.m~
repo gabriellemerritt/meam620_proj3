@@ -8,7 +8,6 @@ for t=1:total_time
     POS = [POS pos];
 end
 
-plot3(POS(1,:), POS(2,:), POS(3,:))
     
 
 fileID = fopen('linetraj.txt', 'w');
