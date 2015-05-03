@@ -409,7 +409,7 @@ void *looperRun (void* data)
                 deviceManager->flightStates.yaw_cur, deviceManager->flightStates.x_cur, deviceManager->flightStates.y_cur,
                 deviceManager->flightStates.z_cur, deviceManager->flightStates.vx_cur, deviceManager->flightStates.vy_cur,
                 deviceManager->flightStates.vz_cur);
-            fprintf(traj_log, "PATH TIME: %f \n COEFF : %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", deviceManager->coef.traj_time ,deviceManager->coef.coef_x[0],
+            fprintf(traj_log, "TIME: %f, COEFF : %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f", t_elapsed ,deviceManager->coef.coef_x[0],
                 deviceManager->coef.coef_x[1], deviceManager->coef.coef_x[2], deviceManager->coef.coef_x[3], deviceManager->coef.coef_x[4], deviceManager->coef.coef_x[5],
                 deviceManager->coef.coef_y[0], deviceManager->coef.coef_y[1], deviceManager->coef.coef_y[2],deviceManager->coef.coef_y[3],deviceManager->coef.coef_y[4],
                 deviceManager->coef.coef_y[5], deviceManager->coef.coef_z[0], deviceManager->coef.coef_z[1], deviceManager->coef.coef_z[2],deviceManager->coef.coef_z[3], 
@@ -1884,12 +1884,11 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 if(deviceManager->Traj_on == 0)
                 {
                     deviceManager->Traj_on =1; 
-                    IHM_ShowState(deviceManager->ihm, "General Trajectory"); 
+                    IHM_ShowState(deviceManager->ihm, "General Trajectory Running"); 
                     deviceManager->genTraj.trajStartTime = clock();
                     deviceManager->genTraj.x_offset = deviceManager->flightStates.x_cur;
                     deviceManager->genTraj.y_offset = deviceManager->flightStates.y_cur;
                     deviceManager->genTraj.z_offset = deviceManager->flightStates.z_cur; 
-                    // runTrajectory(deviceManager)
                     
                 }
 

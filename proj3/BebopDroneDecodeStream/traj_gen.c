@@ -103,9 +103,9 @@ void genTrajectory (void *customData)
     deviceManager->genTraj.az_des = 2*deviceManager->coef.coef_z[2] + 6*deviceManager->coef.coef_z[3]*t + 12*deviceManager->coef.coef_z[4]*pow(t,2) + 
                    20* deviceManager->coef.coef_z[5]*pow(t,3);
 
-// Follow Traj using calculated desired values // 
+// // Follow Traj using calculated desired values // 
 
-    followTrajectory(deviceManager->genTraj, deviceManager); 
+//     followTrajectory(deviceManager->genTraj, deviceManager); 
 
 }
 
@@ -230,11 +230,14 @@ void runTrajectory(void *customData, const char* file_name)
 // move from way point to way point 
     for (i = 0; i< loop_runs; i++)
     {
-        t_start = clock(); 
+        //deviceManager->genTraj.trt_start = clock(); 
+
+        deviceManager->genTraj.trajStartTime = clock(); 
 
        if(readTrajectory(file_name, i, deviceManager) > 0)
         {
-            t_elapsed = (float)(clock() - t_start)/CLOCKS_PER_SEC;
+        
+            t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
 
 // while time is less than the time it takes to complete trajectory, calculate state, command roll, pitch, yaw and thrust 
 
@@ -242,11 +245,15 @@ void runTrajectory(void *customData, const char* file_name)
             {
                 genTrajectory(deviceManager); 
                 followTrajectory(deviceManager->genTraj, deviceManager);
-                t_elapsed = (float)(clock() - t_start)/CLOCKS_PER_SEC;
+                t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
             }        
         }
 
     }
+// set the trajectory flag to 0     
+
+    deviceManager->Traj_on = 0;
+
 
 }
 
