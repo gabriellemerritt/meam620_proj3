@@ -1,5 +1,5 @@
 a=[0,0,-1].';
-b=[1,2,-2].'; 
+b=[0,0,-2].'; 
 [total_time, a0, a1, a2, a3, a4, a5] = line_ab_real(a, b);
 
 POS = []; 
@@ -11,7 +11,7 @@ end
 plot3(POS(1,:), POS(2,:), POS(3,:))
     
 
-fileID = fopen('linetraj.txt', 'w');
+fileID = fopen('zlinetraj.txt', 'w');
 fprintf(fileID, '\n%0.9f ',  total_time);
 fprintf(fileID,'%0.9f ',a0, a1, a2, a3, a4, a5);
 fclose(fileID);
