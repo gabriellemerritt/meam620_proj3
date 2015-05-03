@@ -8,7 +8,7 @@ function [total_time, a0, a1, a2, a3, a4, a5] = line_ab_real(a, b)
 
 %total time
 distance = sqrt(sum((b-a).^2));
-total_time = 2*sqrt(distance); 
+total_time = 10*sqrt(distance); 
 
 t0 = 0;
 tf = total_time;

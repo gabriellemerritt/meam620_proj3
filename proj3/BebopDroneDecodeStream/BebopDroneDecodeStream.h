@@ -205,4 +205,5 @@ void velocityCallback(float Vx, float Vy, float Vz, void* custom);
 void onInputEvent (eIHM_INPUT_EVENT event, void *customData);
 int customPrintCallback (eARSAL_PRINT_LEVEL level, const char *tag, const char *format, va_list va);
 
+
 #endif /* _SDK_EXAMPLE_BD_H_ */

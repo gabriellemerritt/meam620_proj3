@@ -93,16 +93,10 @@
 
 #define ERROR_STR_LENGTH 2048
 
-#define KPX 300
-#define KPY 300
-#define KPZ 300
-
-#define KDX 200
-#define KDY 200
-#define KDZ 200
 
 FILE *bebop_logging;
 FILE *traj_log; 
+FILE *des_pos_log; 
 volatile int line_num; 
 
 int getNextDataCallback(uint8_t **data, void *customData);
@@ -414,8 +408,10 @@ void *looperRun (void* data)
                 deviceManager->coef.coef_y[0], deviceManager->coef.coef_y[1], deviceManager->coef.coef_y[2],deviceManager->coef.coef_y[3],deviceManager->coef.coef_y[4],
                 deviceManager->coef.coef_y[5], deviceManager->coef.coef_z[0], deviceManager->coef.coef_z[1], deviceManager->coef.coef_z[2],deviceManager->coef.coef_z[3], 
                 deviceManager->coef.coef_z[4], deviceManager->coef.coef_z[5]); 
+            fprintf(des_pos_log,"TIME: %f, XDES: %f, YDES: %f, ZDES: %f \n", t_elapsed, deviceManager->genTraj.x_des, deviceManager->genTraj.y_des, deviceManager->genTraj.z_des);
 
-            usleep(50000);
+            // usleep(50000);
+            usleep(5000);
         }
     }
     // fclose(bebop_logging); 
@@ -431,7 +427,7 @@ int main (int argc, char *argv[])
     float test; 
     int line_number = 1; // actually the 3rd line in the file (file starts at -1)
     int failed = 0;
-    const char *file_name = "test_traj.txt";
+    // const char *file_name = "test_traj.txt";
 
     BD_MANAGER_t *deviceManager = malloc(sizeof(BD_MANAGER_t));
 
@@ -482,6 +478,11 @@ int main (int argc, char *argv[])
     if(traj_log == NULL)
     {
         printf("Error Opening traj_log");
+    }
+    des_pos_log = fopen("des_pos.txt", "w"); 
+    if(des_pos_log == NULL)
+    {
+        printf("Error Opening Desired Position Log"); 
     }
 
     
@@ -1895,6 +1896,17 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 
             }
             break;
+        case IHM_INPUT_EVENT_STOP_TRAJ:
+            if(deviceManager != NULL)
+            {
+                if(deviceManager->Traj_on == 0)
+                {
+                    IHM_ShowState(deviceManager->ihm, "Stopping Traj"); 
+                    deviceManager->Traj_on = 0; 
+
+                }
+            }
+            break;
         case IHM_INPUT_EVENT_NONE:
             if(deviceManager != NULL)
             {
@@ -1911,7 +1923,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     deviceManager->dataPCMD.flag = 1;
                     //generateTrajectory(deviceManager);
                     //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
-                    runTrajectory(deviceManager, "updown.txt");
+                    runTrajectory(event, deviceManager, "squaretraj.txt");
                 }
                 
             }

@@ -25,11 +25,11 @@ by Lou Lin and Gabby Merritt
 
 #define KPX 300
 #define KPY 300
-#define KPZ 300
+#define KPZ 500
 
 #define KDX 200
 #define KDY 200
-#define KDZ 200
+#define KDZ 00
 
 
 // volatile int line_number; 
@@ -51,7 +51,7 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
     // deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
     //deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
-    deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+    deviceManager->dataPCMD.gaz = -( KDZ* (traj.vz_des - deviceManager->flightStates.vz_cur) + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
 
     //print for debug
     IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
@@ -104,9 +104,14 @@ void genTrajectory (void *customData)
     deviceManager->genTraj.az_des = 2*deviceManager->coef.coef_z[2] + 6*deviceManager->coef.coef_z[3]*t + 12*deviceManager->coef.coef_z[4]*pow(t,2) + 
                    20* deviceManager->coef.coef_z[5]*pow(t,3);
 
+
+
 // // Follow Traj using calculated desired values // 
 
 //     followTrajectory(deviceManager->genTraj, deviceManager); 
+
+
+
 
 }
 
@@ -214,9 +219,11 @@ int lengthTrajectory(const char* file_name)
     return count; 
 
 }
-void runTrajectory(void *customData, const char* file_name)
+void runTrajectory(eIHM_INPUT_EVENT event, void *customData, const char* file_name)
 {
 // point to deviceManager // 
+
+
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData; 
     
     clock_t t_start;
@@ -242,11 +249,16 @@ void runTrajectory(void *customData, const char* file_name)
 
 // while time is less than the time it takes to complete trajectory, calculate state, command roll, pitch, yaw and thrust 
 
-            while ( t_elapsed < deviceManager->coef.traj_time) 
+            while (t_elapsed < deviceManager->coef.traj_time ) 
             {
+                // if ( deviceManager->ihm->onInputEventCallback(IHM_INPUT_EVENT_STOP_TRAJ, deviceManager))
+                // {
+                //     deviceManager->Traj_on = 0; 
+                // }
                 genTrajectory(deviceManager); 
                 followTrajectory(deviceManager->genTraj, deviceManager);
                 t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
+
             }        
         }
 
@@ -254,7 +266,6 @@ void runTrajectory(void *customData, const char* file_name)
 // set the trajectory flag to 0     
 
     deviceManager->Traj_on = 0;
-
 
 }
 
