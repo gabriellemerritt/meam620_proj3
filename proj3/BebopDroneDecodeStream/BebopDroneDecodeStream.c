@@ -1910,8 +1910,9 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 else
                 {
                     deviceManager->dataPCMD.flag = 1;
-                    generateTrajectory(deviceManager);
-                    followTrajectory(deviceManager->hoverTraj, deviceManager);                    
+                    //generateTrajectory(deviceManager);
+                    //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
+                    runTrajectory(deviceManager, "squaretraj.txt");
                 }
                 
             }

@@ -50,7 +50,7 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     deviceManager->dataPCMD.roll = -(1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
     deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
     // deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
-    deviceManager->dataPCMD.gaz = (traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+    deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
 
     //print for debug
     IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
