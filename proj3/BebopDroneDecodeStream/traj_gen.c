@@ -50,6 +50,7 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     deviceManager->dataPCMD.roll = -(1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
     deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
     // deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+    //deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
     deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
 
     //print for debug
@@ -176,15 +177,15 @@ void generateTrajectory(void *customData)
     t = (float)(clock() - deviceManager->hoverTraj.trajStartTime)/CLOCKS_PER_SEC;
     if(t <= t1)
     {
-        deviceManager->hoverTraj.x_des = a1*pow(t,3) + b1*pow(t,2) + c1*t + d1 + deviceManager->hoverTraj.x_offset;
-        deviceManager->hoverTraj.vx_des = 3*a1*pow(t,2) + 2*b1*t + c1;
-        deviceManager->hoverTraj.ax_des = 6*a1*t + 2*b1;
+        deviceManager->hoverTraj.z_des = -1-(a1*pow(t,3) + b1*pow(t,2) + c1*t + d1 + deviceManager->hoverTraj.x_offset);
+        deviceManager->hoverTraj.vz_des = -(3*a1*pow(t,2) + 2*b1*t + c1);
+        deviceManager->hoverTraj.az_des = - (6*a1*t + 2*b1);
     }
     else if(t >= t1 && t <= t2)
     {
-        deviceManager->hoverTraj.x_des = a2*pow(t,3) + b2*pow(t,2) + c2*t + d2 + deviceManager->hoverTraj.x_offset;
-        deviceManager->hoverTraj.vx_des = 3*a2*pow(t,2) + 2*b2*t + c2;
-        deviceManager->hoverTraj.ax_des = 6*a2*t + 2*b2;
+        deviceManager->hoverTraj.z_des = -1-(a2*pow(t,3) + b2*pow(t,2) + c2*t + d2 + deviceManager->hoverTraj.x_offset);
+        deviceManager->hoverTraj.vz_des = -(3*a2*pow(t,2) + 2*b2*t + c2);
+        deviceManager->hoverTraj.az_des = -(6*a2*t + 2*b2);
     }
     else
     {
