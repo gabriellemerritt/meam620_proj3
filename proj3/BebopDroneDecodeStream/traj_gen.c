@@ -49,7 +49,9 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     //put them into desired angle for the attitude controller
     deviceManager->dataPCMD.roll = -(1/9.81)*(ax_des*sin(yaw) - ay_des*cos(yaw));
     deviceManager->dataPCMD.pitch = (1/9.81)*(ax_des*cos(yaw) + ay_des*sin(yaw));
-    deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+    // deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+    deviceManager->dataPCMD.gaz = (traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
+
     //print for debug
     IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
 }
@@ -130,11 +132,19 @@ int readTrajectory (const char* file_name, int line_number, void *customData)
          {
             fgets(line, sizeof(line), traj_file); /* read a line */
 
-            sscanf(line, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", 
-             &deviceManager->coef.traj_time, &deviceManager->coef.coef_x[0],&deviceManager->coef.coef_x[1], &deviceManager->coef.coef_x[2], &deviceManager->coef.coef_x[3],
-             &deviceManager->coef.coef_x[4],&deviceManager->coef.coef_x[5], &deviceManager->coef.coef_y[0],&deviceManager->coef.coef_y[1],&deviceManager->coef.coef_y[2],
-             &deviceManager->coef.coef_y[3],&deviceManager->coef.coef_y[4],&deviceManager->coef.coef_y[5], &deviceManager->coef.coef_z[0], &deviceManager->coef.coef_z[1],
-             &deviceManager->coef.coef_z[2],&deviceManager->coef.coef_z[3],&deviceManager->coef.coef_z[4],&deviceManager->coef.coef_z[5]);  // sscanf to parse line file into floats then put those in arrays
+            // AX0 AY0 AZ0 AX1 AY1 
+
+            // sscanf(line, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", 
+            //  &deviceManager->coef.traj_time, &deviceManager->coef.coef_x[0],&deviceManager->coef.coef_x[1], &deviceManager->coef.coef_x[2], &deviceManager->coef.coef_x[3],
+            //  &deviceManager->coef.coef_x[4],&deviceManager->coef.coef_x[5], &deviceManager->coef.coef_y[0],&deviceManager->coef.coef_y[1],&deviceManager->coef.coef_y[2],
+            //  &deviceManager->coef.coef_y[3],&deviceManager->coef.coef_y[4],&deviceManager->coef.coef_y[5], &deviceManager->coef.coef_z[0], &deviceManager->coef.coef_z[1],
+            //  &deviceManager->coef.coef_z[2],&deviceManager->coef.coef_z[3],&deviceManager->coef.coef_z[4],&deviceManager->coef.coef_z[5]);  // sscanf to parse line file into floats then put those in arrays
+
+            sscanf(line, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", &deviceManager->coef.traj_time, &deviceManager->coef.coef_x[0], &deviceManager->coef.coef_y[0],
+                   &deviceManager->coef.coef_z[0], &deviceManager->coef.coef_x[1], &deviceManager->coef.coef_y[1], &deviceManager->coef.coef_z[1], &deviceManager->coef.coef_x[2], 
+                   &deviceManager->coef.coef_y[2], &deviceManager->coef.coef_z[2],  &deviceManager->coef.coef_x[3], &deviceManager->coef.coef_y[3], &deviceManager->coef.coef_z[3],
+                   &deviceManager->coef.coef_x[4], &deviceManager->coef.coef_y[4], &deviceManager->coef.coef_z[4],  &deviceManager->coef.coef_x[5], &deviceManager->coef.coef_y[5],
+                   &deviceManager->coef.coef_z[5]); 
 
             return line_number+1; 
 
