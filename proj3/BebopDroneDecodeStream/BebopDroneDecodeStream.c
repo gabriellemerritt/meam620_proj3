@@ -1904,7 +1904,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 {
                     deviceManager->Traj_on =1; 
                     IHM_ShowState(deviceManager->ihm, "Theta Traj"); 
-                    theta_flag =1; 
+                    deviceManager->theta_flag =1; 
                     deviceManager->genTraj.trajStartTime = clock();
                     deviceManager->genTraj.x_offset = deviceManager->flightStates.x_cur;
                     deviceManager->genTraj.y_offset = deviceManager->flightStates.y_cur;

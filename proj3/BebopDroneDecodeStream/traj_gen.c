@@ -220,7 +220,7 @@ int lengthTrajectory(const char* file_name)
     return count; 
 
 }
-void runTrajectory(void *customData, const char* file_name)
+void runTrajectory(eIHM_INPUT_EVENT event, void *customData, const char* file_name)
 {
 // point to deviceManager // 
 
@@ -281,18 +281,18 @@ void runTrajectory(void *customData, const char* file_name)
 // set the trajectory flag to 0     
 
     deviceManager->Traj_on = 0;
-    theta_flag = 0;        
+    deviceManager->theta_flag = 0;        
 
 
 }
 
-void genThetaTraj ( void *customData)
+void genThetaTraj (void *customData)
 {
 
     float t; 
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData; 
 // current time  // 
-    float theta, omega, alpha; 
+    float theta, omega, alpha, r, b; 
     theta = deviceManager->thetaTraj.coef_theta[0] + deviceManager->thetaTraj.coef_theta[1]*t +
             deviceManager->thetaTraj.coef_theta[2]*pow(t,2) + deviceManager->thetaTraj.coef_theta[3]*pow(t,3)+
             deviceManager->thetaTraj.coef_theta[4]*pow(t,4) + deviceManager->thetaTraj.coef_theta[5]*pow(t,5);
@@ -308,6 +308,7 @@ void genThetaTraj ( void *customData)
     t = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
 
     r = 2.5; 
+    b = 0.25;
 
     deviceManager->genTraj.x_des  = r*cos(theta)-r;
     deviceManager->genTraj.y_des  = r*sin(theta);

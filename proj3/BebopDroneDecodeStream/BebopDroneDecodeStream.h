@@ -93,7 +93,7 @@ typedef struct
 typedef struct 
 {
     float traj_time; 
-    float theta[6];
+    float coef_theta[6];
 }THETA_t; 
 
 typedef struct READER_THREAD_DATA_t READER_THREAD_DATA_t;

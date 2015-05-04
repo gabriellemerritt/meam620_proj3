@@ -8,6 +8,8 @@ void followTrajectory(TRAJECTORY_t traj, void *customData);
 
 void genTrajectory (void *customData);
 
+void genThetaTraj(void *customData);
+
 int readTrajectory (const char* file_name, int line_number, void *customData); 
 
 int lengthTrajectory(const char* file_name); 
