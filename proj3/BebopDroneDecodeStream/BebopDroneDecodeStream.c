@@ -1771,6 +1771,10 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 {
     // Manage IHM input events
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t *)customData;
+    static int count = 0; 
+    const char* file_name; 
+    int loop_runs; 
+    float t_elapsed; 
     
     switch (event)
     {
@@ -1911,7 +1915,11 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 if(deviceManager->Traj_on == 0)
                 {
                     deviceManager->Traj_on =1; 
-                    IHM_ShowState(deviceManager->ihm, "General Trajectory Running"); 
+                    file_name = "squaretraj.txt"; 
+                    loop_runs = lengthTrajectory("squaretraj.txt")-1; 
+
+                    IHM_ShowState(deviceManager->ihm, "General Trajectory");
+                    printf("Loop runs : %i", loop_runs) ;
                     deviceManager->genTraj.trajStartTime = clock();
                     deviceManager->genTraj.x_offset = deviceManager->flightStates.x_cur;
                     deviceManager->genTraj.y_offset = deviceManager->flightStates.y_cur;
@@ -1928,7 +1936,11 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 if(deviceManager->Traj_on == 0 & (deviceManager->theta_flag == 0)) // might need to change this 
 
                 {
-                    deviceManager->Traj_on =1; 
+                    deviceManager->Traj_on = 1; 
+                    file_name = "helixtraj.txt";
+                    loop_runs = lengthTrajectory("helixtraj.txt")-1; 
+
+
                     IHM_ShowState(deviceManager->ihm, "Theta Traj"); 
                     deviceManager->theta_flag =1; 
                     deviceManager->genTraj.trajStartTime = clock();
@@ -1943,7 +1955,10 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
         case IHM_INPUT_EVENT_KILL_TRAJ:
             if(deviceManager != NULL)
             {
-                    deviceManager->Traj_on = 0; 
+                
+                    deviceManager->Traj_on = 0;
+                    IHM_ShowState(deviceManager->ihm, "Killing Traj"); 
+
                     deviceManager->dataPCMD.flag = 0;
                     deviceManager->dataPCMD.roll = 0;
                     deviceManager->dataPCMD.pitch = 0;
@@ -1964,10 +1979,35 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 }
                 else
                 {
+                    printf("Count: %i",count);
+                   
                     deviceManager->dataPCMD.flag = 1;
                     //generateTrajectory(deviceManager);
                     //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
-                    runTrajectory(event, deviceManager);
+                    //runTrajectory(event, deviceManager);
+                    t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
+                    if((t_elapsed > deviceManager->coef.traj_time))
+                        {
+                             
+                             readTrajectory("squaretraj.txt", count, deviceManager); 
+                             deviceManager->genTraj.trajStartTime = clock(); 
+                             count++; 
+
+
+                        }
+                    if (count < loop_runs)
+                    {
+                        genTrajectory(deviceManager); 
+                        followTrajectory(deviceManager->genTraj, deviceManager); 
+                    } 
+                    else
+                    {
+
+                        deviceManager->Traj_on = 0;
+                        deviceManager->theta_flag = 0; 
+                        count = 0; 
+                    }
+                   
                 }
                 
             }
