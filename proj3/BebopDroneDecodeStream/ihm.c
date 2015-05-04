@@ -332,7 +332,7 @@ void *IHM_InputProcessing(void *data)
                     ihm->onInputEventCallback( IHM_INPUT_EVENT_THETA_TRAJ, ihm ->customData); 
                 }
             }
-            else if (key =='o')
+            else if (key =='x')
             {
                 if(ihm->onInputEventCallback != NULL)
                 {

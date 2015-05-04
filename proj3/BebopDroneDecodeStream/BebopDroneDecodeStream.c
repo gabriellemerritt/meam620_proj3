@@ -408,7 +408,9 @@ void *looperRun (void* data)
                 deviceManager->coef.coef_y[0], deviceManager->coef.coef_y[1], deviceManager->coef.coef_y[2],deviceManager->coef.coef_y[3],deviceManager->coef.coef_y[4],
                 deviceManager->coef.coef_y[5], deviceManager->coef.coef_z[0], deviceManager->coef.coef_z[1], deviceManager->coef.coef_z[2],deviceManager->coef.coef_z[3], 
                 deviceManager->coef.coef_z[4], deviceManager->coef.coef_z[5]); 
-            fprintf(des_pos_log,"TIME: %f, XDES: %f, YDES: %f, ZDES: %f \n", t_elapsed, deviceManager->genTraj.x_des, deviceManager->genTraj.y_des, deviceManager->genTraj.z_des);
+            fprintf(des_pos_log,"TIME: %f, XDES: %f, YDES: %f, ZDES: %f VXDES: %f, VYDES: %f, VZDES: %f \n", t_elapsed, deviceManager->genTraj.x_des, deviceManager->genTraj.y_des, 
+                    deviceManager->genTraj.z_des, deviceManager->genTraj.vx_des, deviceManager->genTraj.vy_des,deviceManager->genTraj.vz_des);
+
 
             // usleep(50000);
             usleep(5000);
@@ -1252,6 +1254,30 @@ int sendBeginStream(BD_MANAGER_t *deviceManager)
     return sentStatus;
 }
 
+// int sendRecordVideo(BD_MANAGER_t *deviceManager)
+// {
+//     int sentStatus = 1; 
+//     u_int8_t cmdBuffer[128];  
+//     int32_t cmdSize = 0; 
+//     eARCOMMANDS_GENERATOR_ERROR cmdErrorl 
+//     eARNETWORK_ERROR netError = ARNETWORK_ERROR; 
+
+//     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- Video Recording Begin"); 
+//     // send recording begin command 
+//     cmdError = ARCOMMANDS_Generator_GenerateARDrone3MediaRecordVideo(cmdBuffer, sizeof(cmdBuffer), &cmdSize, ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_START,  3);
+//     if(cmdError == ARCOMMANDS_GENERATOR_OK)
+//     {
+//         netError = ARNETWORK_Manager_SendData(deviceManager->netManager, BD_NET_CD_ACK_ID, cmdBuffer, cmdSize, NULL, &(arnetworkCmdCallback),1);
+//     }
+//     if ((cmdError != ARNETWORK_GENERATOR_OK) || netError != ARNETWORK_OK))
+//     {
+//          ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "Failed to send Video Record command. cmdError:%d netError:%s", cmdError, ARNETWORK_Error_ToString(netError));
+//         sentStatus = 0;
+
+//     }
+
+//     return sentStatus; 
+// }
 int sendTakeoff(BD_MANAGER_t *deviceManager)
 {
     int sentStatus = 1;
