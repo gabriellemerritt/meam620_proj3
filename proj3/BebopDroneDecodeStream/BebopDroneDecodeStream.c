@@ -1771,9 +1771,9 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 {
     // Manage IHM input events
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t *)customData;
-    static int count = 0; 
+    int count; 
     const char* file_name; 
-    int loop_runs; 
+    static int loop_runs; 
     float t_elapsed; 
     
     switch (event)
@@ -1917,6 +1917,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     deviceManager->Traj_on =1; 
                     file_name = "squaretraj.txt"; 
                     loop_runs = lengthTrajectory("squaretraj.txt")-1; 
+                    deviceManager->genTraj.line_count = 0; 
 
                     IHM_ShowState(deviceManager->ihm, "General Trajectory");
                     printf("Loop runs : %i", loop_runs) ;
@@ -1979,34 +1980,35 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 }
                 else
                 {
-                    printf("Count: %i",count);
+                    printf("Count: %i",deviceManager->genTraj.line_count);
                    
                     deviceManager->dataPCMD.flag = 1;
-                    //generateTrajectory(deviceManager);
-                    //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
-                    //runTrajectory(event, deviceManager);
+                    // //generateTrajectory(deviceManager);
+                    // //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
+                    // //runTrajectory(event, deviceManager);
+                    readTrajectory("squaretraj.txt", deviceManager->genTraj.line_count, deviceManager); 
+                    genTrajectory(deviceManager); 
+                    followTrajectory(deviceManager->genTraj, deviceManager); 
                     t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
                     if((t_elapsed > deviceManager->coef.traj_time))
                         {
-                             
-                             readTrajectory("squaretraj.txt", count, deviceManager); 
-                             deviceManager->genTraj.trajStartTime = clock(); 
-                             count++; 
-
+                            deviceManager->genTraj.line_count = deviceManager->genTraj.line_count + 1; 
+                            deviceManager->genTraj.trajStartTime = clock(); 
 
                         }
-                    if (count < loop_runs)
+                    
+                    if ((deviceManager->genTraj.line_count >= loop_runs))
                     {
-                        genTrajectory(deviceManager); 
-                        followTrajectory(deviceManager->genTraj, deviceManager); 
-                    } 
-                    else
-                    {
-
+                        IHM_ShowState(deviceManager->ihm, "Traj Done"); 
                         deviceManager->Traj_on = 0;
                         deviceManager->theta_flag = 0; 
-                        count = 0; 
+                        deviceManager->genTraj.line_count = 0;
+                        deviceManager->genTraj.vx_des = 0;
+                        deviceManager->genTraj.vy_des = 0;
+                        deviceManager->genTraj.vz_des = 0;
+
                     }
+                   
                    
                 }
                 

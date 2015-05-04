@@ -25,7 +25,7 @@ by Lou Lin and Gabby Merritt
 
 #define KPX 300
 #define KPY 300
-#define KPZ 500
+#define KPZ 300
 
 #define KDX 200
 #define KDY 200

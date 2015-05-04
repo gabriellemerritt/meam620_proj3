@@ -79,6 +79,7 @@ typedef struct
     float y_offset;
     float z_offset;
     clock_t trajStartTime;
+    int line_count; 
 } TRAJECTORY_t;
 
 
@@ -152,6 +153,7 @@ typedef struct
     COEFF_t coef; // trajectory Coefficients 
     THETA_t thetaTraj; 
     int theta_flag; 
+
     
 } BD_MANAGER_t;
 
