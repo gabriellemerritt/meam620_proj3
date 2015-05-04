@@ -318,8 +318,8 @@ void genThetaTraj (void *customData)
 
     t = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
 
-    r = 2.5; 
-    b = 0.25;
+    r = 1; 
+    b = 1;
 
     deviceManager->genTraj.x_des  = r*cos(theta)-r;
     deviceManager->genTraj.y_des  = r*sin(theta);

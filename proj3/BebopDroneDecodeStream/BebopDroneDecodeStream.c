@@ -98,6 +98,8 @@ FILE *bebop_logging;
 FILE *traj_log; 
 FILE *des_pos_log; 
 volatile int line_num; 
+const char* traj_name; 
+
 
 int getNextDataCallback(uint8_t **data, void *customData);
 void* Decode_RunDataThread(void *customData);
@@ -1772,7 +1774,6 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
     // Manage IHM input events
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t *)customData;
     int count; 
-    const char* file_name; 
     static int loop_runs; 
     float t_elapsed; 
     
@@ -1915,7 +1916,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 if(deviceManager->Traj_on == 0)
                 {
                     deviceManager->Traj_on =1; 
-                    file_name = "squaretraj.txt"; 
+                    traj_name = "squaretraj.txt"; 
                     loop_runs = lengthTrajectory("squaretraj.txt")-1; 
                     deviceManager->genTraj.line_count = 0; 
 
@@ -1938,7 +1939,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 
                 {
                     deviceManager->Traj_on = 1; 
-                    file_name = "helixtraj.txt";
+                    traj_name = "helixtraj.txt";
                     loop_runs = lengthTrajectory("helixtraj.txt")-1; 
 
 
@@ -1986,7 +1987,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     // //generateTrajectory(deviceManager);
                     // //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
                     // //runTrajectory(event, deviceManager);
-                    readTrajectory("squaretraj.txt", deviceManager->genTraj.line_count, deviceManager); 
+                    readTrajectory(traj_name, deviceManager->genTraj.line_count, deviceManager); 
                     genTrajectory(deviceManager); 
                     followTrajectory(deviceManager->genTraj, deviceManager); 
                     t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
