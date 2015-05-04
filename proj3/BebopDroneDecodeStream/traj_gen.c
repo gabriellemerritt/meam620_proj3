@@ -220,7 +220,7 @@ int lengthTrajectory(const char* file_name)
     return count; 
 
 }
-void runTrajectory(eIHM_INPUT_EVENT event, void *customData, const char* file_name)
+void runTrajectory(eIHM_INPUT_EVENT event, void *customData)
 {
 // point to deviceManager // 
 
@@ -231,6 +231,17 @@ void runTrajectory(eIHM_INPUT_EVENT event, void *customData, const char* file_na
     float t_elapsed; 
     int loop_runs; 
     int i; 
+    const char* file_name; 
+    
+    if(deviceManager->theta_flag == 1)
+    {
+        file_name = "helixtraj.txt";
+    }
+    else{
+        file_name = "squaretraj.txt";
+
+    }
+    
 
 // figure out how segments (from way point to way point) // 
 
