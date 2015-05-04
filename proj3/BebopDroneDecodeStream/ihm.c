@@ -325,7 +325,11 @@ void *IHM_InputProcessing(void *data)
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_GEN_TRAJ, ihm -> customData); 
                 }
             }
+<<<<<<< HEAD
             else if (key =='w')
+=======
+            else if (key ==';')
+>>>>>>> 900bc9fd7e67c52ec1575e7daf8df5eb00fbb2fb
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
