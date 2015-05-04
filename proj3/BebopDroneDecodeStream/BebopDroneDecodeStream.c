@@ -1899,7 +1899,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
         case IHM_INPUT_EVENT_THETA_TRAJ:
             if(deviceManager != NULL)
             {
-                if(deviceManager->Traj_on == 0) // might need to change this 
+                if(deviceManager->Traj_on == 0 & (deviceManager->theta_flag == 0)) // might need to change this 
 
                 {
                     deviceManager->Traj_on =1; 
@@ -1912,6 +1912,17 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     
 
                 }
+            }
+            break; 
+        case IHM_INPUT_EVENT_KILL_TRAJ:
+            if(deviceManager != NULL)
+            {
+                    deviceManager->Traj_on = 0; 
+                    deviceManager->dataPCMD.flag = 0;
+                    deviceManager->dataPCMD.roll = 0;
+                    deviceManager->dataPCMD.pitch = 0;
+                    deviceManager->dataPCMD.yaw = 0;
+                    deviceManager->dataPCMD.gaz = 0;
             }
             break;
         case IHM_INPUT_EVENT_NONE:
@@ -1930,7 +1941,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     deviceManager->dataPCMD.flag = 1;
                     //generateTrajectory(deviceManager);
                     //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
-                    runTrajectory(event, deviceManager, "squaretraj.txt");
+                    runTrajectory(event, deviceManager);
                 }
                 
             }
