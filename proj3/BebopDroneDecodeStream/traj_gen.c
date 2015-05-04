@@ -39,8 +39,9 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
 {
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
 
-     float ax_des, ay_des, yaw;
-     yaw = deviceManager->flightStates.yaw_cur;
+    float ax_des, ay_des, yaw;
+    // angles in percentage of degrees ? ? ? 
+    yaw = deviceManager->flightStates.yaw_cur;
      //find desired acceleration in the x and y direction
      //ax_des = deviceManager->hoverTraj.ax_des + KDX * (traj.vx_des - deviceManager->flightStates.vx_cur) + KPX * (traj.x_des - deviceManager->flightStates.x_cur);
      //ay_des = deviceManager->hoverTraj.ay_des + KDY * (traj.vy_des - deviceManager->flightStates.vy_cur) + KPY * (traj.y_des - deviceManager->flightStates.y_cur);
@@ -52,7 +53,7 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     // deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
     //deviceManager->dataPCMD.gaz = -(traj.vz_des + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
     deviceManager->dataPCMD.gaz = -( KDZ* (traj.vz_des - deviceManager->flightStates.vz_cur) + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
-
+    // arent we sending 
     //print for debug
     IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
 }
@@ -219,7 +220,7 @@ int lengthTrajectory(const char* file_name)
     return count; 
 
 }
-void runTrajectory(eIHM_INPUT_EVENT event, void *customData, const char* file_name)
+void runTrajectory(void *customData, const char* file_name)
 {
 // point to deviceManager // 
 
@@ -248,24 +249,124 @@ void runTrajectory(eIHM_INPUT_EVENT event, void *customData, const char* file_na
             t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
 
 // while time is less than the time it takes to complete trajectory, calculate state, command roll, pitch, yaw and thrust 
-
-            while (t_elapsed < deviceManager->coef.traj_time ) 
+            if (deviceManager->theta_flag == 1)
             {
-                // if ( deviceManager->ihm->onInputEventCallback(IHM_INPUT_EVENT_STOP_TRAJ, deviceManager))
-                // {
-                //     deviceManager->Traj_on = 0; 
-                // }
-                genTrajectory(deviceManager); 
-                followTrajectory(deviceManager->genTraj, deviceManager);
-                t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
+                while (t_elapsed < deviceManager->thetaTraj.traj_time)
+                {
 
-            }        
+                    genThetaTraj(deviceManager); 
+                    followTrajectory(deviceManager->genTraj, deviceManager); 
+                    t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
+
+
+                }
+            }
+            else{
+
+                while (t_elapsed < deviceManager->coef.traj_time ) 
+                {
+                    // if ( deviceManager->ihm->onInputEventCallback(IHM_INPUT_EVENT_STOP_TRAJ, deviceManager))
+                    // {
+                    //     deviceManager->Traj_on = 0; 
+                    // }
+                    genTrajectory(deviceManager); 
+                    followTrajectory(deviceManager->genTraj, deviceManager);
+                    t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
+
+                }
+            }
         }
 
     }
 // set the trajectory flag to 0     
 
     deviceManager->Traj_on = 0;
+    theta_flag = 0;        
+
+
+}
+
+void genThetaTraj ( void *customData)
+{
+
+    float t; 
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData; 
+// current time  // 
+    float theta, omega, alpha; 
+    theta = deviceManager->thetaTraj.coef_theta[0] + deviceManager->thetaTraj.coef_theta[1]*t +
+            deviceManager->thetaTraj.coef_theta[2]*pow(t,2) + deviceManager->thetaTraj.coef_theta[3]*pow(t,3)+
+            deviceManager->thetaTraj.coef_theta[4]*pow(t,4) + deviceManager->thetaTraj.coef_theta[5]*pow(t,5);
+
+    omega = deviceManager->thetaTraj.coef_theta[1] + 2*deviceManager->thetaTraj.coef_theta[2]*t + 
+            3*deviceManager->thetaTraj.coef_theta[3]*pow(t,2) + 4*deviceManager->thetaTraj.coef_theta[4]*pow(t,3)+
+            5*deviceManager->thetaTraj.coef_theta[5]*pow(t,4);
+
+    alpha = 2*deviceManager->thetaTraj.coef_theta[2] + 6*deviceManager->thetaTraj.coef_theta[3]*t + 
+            12*deviceManager->thetaTraj.coef_theta[4]*pow(t,2) + 20*deviceManager->thetaTraj.coef_theta[5]*pow(t,3);
+
+
+    t = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
+
+    r = 2.5; 
+
+    deviceManager->genTraj.x_des  = r*cos(theta)-r;
+    deviceManager->genTraj.y_des  = r*sin(theta);
+    deviceManager->genTraj.z_des  = b*theta;
+
+//velocities
+    deviceManager->genTraj.vx_des = -r*omega*sin(theta);
+    deviceManager->genTraj.vy_des = r*omega*cos(theta);
+    deviceManager->genTraj.vz_des = b*omega;
+
+// accel 
+
+    deviceManager->genTraj.ax_des = -r*pow(omega,2)*cos(theta)+sin(theta)*(-r*alpha); 
+    deviceManager->genTraj.ay_des = -r*pow(omega,2)*sin(theta)+cos(theta)*r*alpha;
+    deviceManager->genTraj.az_des = b*alpha;
+
+}
+int readThetaTrajectory (const char* file_name, int line_number, void *customData)
+{ 
+
+    BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData;
+
+    FILE *traj_file; 
+    traj_file = fopen(file_name, "r"); 
+    if (!traj_file)
+    {
+        printf("Can't Open File \n"); 
+        return -1; // file error 
+    }
+    char line[1024]; 
+    int count = 0; 
+     while(fgets(line, sizeof(line), traj_file) != NULL) /* read a line */
+     {
+        if (count == line_number)
+         {
+            fgets(line, sizeof(line), traj_file); /* read a line */
+
+            // AX0 AY0 AZ0 AX1 AY1 
+
+            // sscanf(line, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", 
+            //  &deviceManager->coef.traj_time, &deviceManager->coef.coef_x[0],&deviceManager->coef.coef_x[1], &deviceManager->coef.coef_x[2], &deviceManager->coef.coef_x[3],
+            //  &deviceManager->coef.coef_x[4],&deviceManager->coef.coef_x[5], &deviceManager->coef.coef_y[0],&deviceManager->coef.coef_y[1],&deviceManager->coef.coef_y[2],
+            //  &deviceManager->coef.coef_y[3],&deviceManager->coef.coef_y[4],&deviceManager->coef.coef_y[5], &deviceManager->coef.coef_z[0], &deviceManager->coef.coef_z[1],
+            //  &deviceManager->coef.coef_z[2],&deviceManager->coef.coef_z[3],&deviceManager->coef.coef_z[4],&deviceManager->coef.coef_z[5]);  // sscanf to parse line file into floats then put those in arrays
+
+            sscanf(line, "%f %f %f %f %f %f %f", &deviceManager->thetaTraj.traj_time,&deviceManager->thetaTraj.coef_theta[0], 
+                  &deviceManager->thetaTraj.coef_theta[1], &deviceManager->thetaTraj.coef_theta[2], &deviceManager->thetaTraj.coef_theta[3],
+                  &deviceManager->thetaTraj.coef_theta[4],&deviceManager->thetaTraj.coef_theta[5]); 
+
+            return line_number+1; 
+
+            printf("last number is : %f", deviceManager->coef.traj_time); 
+           }
+        else
+         {
+             count++;
+         }
+     }
+    return -2; 
 
 }
 

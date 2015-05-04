@@ -1896,13 +1896,20 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 
             }
             break;
-        case IHM_INPUT_EVENT_STOP_TRAJ:
+        case IHM_INPUT_EVENT_THETA_TRAJ:
             if(deviceManager != NULL)
             {
-                if(deviceManager->Traj_on == 0)
+                if(deviceManager->Traj_on == 0) // might need to change this 
+
                 {
-                    IHM_ShowState(deviceManager->ihm, "Stopping Traj"); 
-                    deviceManager->Traj_on = 0; 
+                    deviceManager->Traj_on =1; 
+                    IHM_ShowState(deviceManager->ihm, "Theta Traj"); 
+                    theta_flag =1; 
+                    deviceManager->genTraj.trajStartTime = clock();
+                    deviceManager->genTraj.x_offset = deviceManager->flightStates.x_cur;
+                    deviceManager->genTraj.y_offset = deviceManager->flightStates.y_cur;
+                    deviceManager->genTraj.z_offset = deviceManager->flightStates.z_cur; 
+                    
 
                 }
             }

@@ -90,6 +90,11 @@ typedef struct
     float traj_time;  
 
 }COEFF_t; 
+typedef struct 
+{
+    float traj_time; 
+    float theta[6];
+}THETA_t; 
 
 typedef struct READER_THREAD_DATA_t READER_THREAD_DATA_t;
 
@@ -145,6 +150,9 @@ typedef struct
     IHM_t *ihm;
 
     COEFF_t coef; // trajectory Coefficients 
+    THETA_t thetaTraj; 
+    int theta_flag; 
+    
 } BD_MANAGER_t;
 
 struct READER_THREAD_DATA_t

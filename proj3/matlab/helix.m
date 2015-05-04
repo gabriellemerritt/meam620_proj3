@@ -1,6 +1,6 @@
 
 %total time 
-total_time = 12; %sec
+total_time = 17; %sec
 theta_max = 2*pi;
 t0 = 0;
 tf = 12;

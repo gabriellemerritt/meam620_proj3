@@ -329,7 +329,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
-                    ihm->onInputEventCallback( IHM_INPUT_EVENT_STOP_TRAJ, ihm ->customData); 
+                    ihm->onInputEventCallback( IHM_INPUT_EVENT_THETA_TRAJ, ihm ->customData); 
                 }
             }
             else
