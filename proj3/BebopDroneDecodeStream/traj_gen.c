@@ -234,7 +234,7 @@ void runTrajectory(eIHM_INPUT_EVENT event, void *customData, const char* file_na
 
 // figure out how segments (from way point to way point) // 
 
-    loop_runs = lengthTrajectory(file_name); 
+    loop_runs = lengthTrajectory(file_name)-1; 
 
 // move from way point to way point 
     for (i = 0; i< loop_runs; i++)
