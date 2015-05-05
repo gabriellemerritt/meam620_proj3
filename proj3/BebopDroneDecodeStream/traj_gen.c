@@ -55,7 +55,7 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     deviceManager->dataPCMD.gaz = -( KDZ* (traj.vz_des - deviceManager->flightStates.vz_cur) + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
     // arent we sending 
     //print for debug
-    IHM_ShowDes(deviceManager->ihm, deviceManager->traj.x_des, deviceManager->traj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
+    // IHM_ShowDes(deviceManager->ihm, deviceManager->traj.x_des, deviceManager->traj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
 }
 
 
@@ -305,7 +305,9 @@ void genThetaTraj (void *customData)
 // current time  // 
     int n =  deviceManager->thetaTraj.n; 
     int b =  deviceManager->thetaTraj.b; 
-    float theta, omega, alpha, r, b; 
+    float theta, omega, alpha, r; 
+    t = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
+
     theta = deviceManager->thetaTraj.coef_theta[0] + deviceManager->thetaTraj.coef_theta[1]*t +
             deviceManager->thetaTraj.coef_theta[2]*pow(t,2) + deviceManager->thetaTraj.coef_theta[3]*pow(t,3)+
             deviceManager->thetaTraj.coef_theta[4]*pow(t,4) + deviceManager->thetaTraj.coef_theta[5]*pow(t,5);
@@ -318,14 +320,15 @@ void genThetaTraj (void *customData)
             12*deviceManager->thetaTraj.coef_theta[4]*pow(t,2) + 20*deviceManager->thetaTraj.coef_theta[5]*pow(t,3);
 
 
-    t = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
 
-    r = 2; 
+    r = .75; 
     // b = 1;
 
     deviceManager->genTraj.x_des  = r*cos(theta)-r;
+    // deviceManager->genTraj.x_des  = r*cos(theta);
+
     deviceManager->genTraj.y_des  = r*sin(n*theta);
-    deviceManager->genTraj.z_des  = -1 + b*theta;
+    deviceManager->genTraj.z_des  = -1 - b*theta;
 
 //velocities
     deviceManager->genTraj.vx_des = -r*omega*sin(theta);
@@ -373,7 +376,7 @@ int readThetaTrajectory (const char* file_name, int line_number, void *customDat
 
             return line_number+1; 
 
-            printf("last number is : %f", deviceManager->coef.traj_time); 
+            // printf("last number is : %f", deviceManager->coef.traj_time); 
            }
         else
          {

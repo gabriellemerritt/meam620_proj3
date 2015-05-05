@@ -158,6 +158,10 @@ xlabel('time (s)');
 ylabel('Z Velocity (m)');
 title('Desired vs. Actual Velocity');
 
+figure(3); 
+plot3(XDES,YDES,ZDES,'r')
+hold on 
+plot3(X,Y,Z,'b');
 
 end
 

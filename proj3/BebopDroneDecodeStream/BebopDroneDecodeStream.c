@@ -405,13 +405,17 @@ void *looperRun (void* data)
                 deviceManager->flightStates.yaw_cur, deviceManager->flightStates.x_cur, deviceManager->flightStates.y_cur,
                 deviceManager->flightStates.z_cur, deviceManager->flightStates.vx_cur, deviceManager->flightStates.vy_cur,
                 deviceManager->flightStates.vz_cur);
-            fprintf(traj_log, "TIME: %f, COEFF : %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f", t_elapsed ,deviceManager->coef.coef_x[0],
+          /* fprintf(traj_log, "TIME: %f, COEFF : %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f", t_elapsed ,deviceManager->coef.coef_x[0],
                 deviceManager->coef.coef_x[1], deviceManager->coef.coef_x[2], deviceManager->coef.coef_x[3], deviceManager->coef.coef_x[4], deviceManager->coef.coef_x[5],
                 deviceManager->coef.coef_y[0], deviceManager->coef.coef_y[1], deviceManager->coef.coef_y[2],deviceManager->coef.coef_y[3],deviceManager->coef.coef_y[4],
                 deviceManager->coef.coef_y[5], deviceManager->coef.coef_z[0], deviceManager->coef.coef_z[1], deviceManager->coef.coef_z[2],deviceManager->coef.coef_z[3], 
                 deviceManager->coef.coef_z[4], deviceManager->coef.coef_z[5]); 
+                */
             fprintf(des_pos_log,"TIME: %f, XDES: %f, YDES: %f, ZDES: %f VXDES: %f, VYDES: %f, VZDES: %f \n", t_elapsed, deviceManager->genTraj.x_des, deviceManager->genTraj.y_des, 
                     deviceManager->genTraj.z_des, deviceManager->genTraj.vx_des, deviceManager->genTraj.vy_des,deviceManager->genTraj.vz_des);
+            fprintf(traj_log, "TIME %f, THETA COEF: %f, %f, %f, %f, %f, %f, %f \n", t_elapsed,deviceManager->thetaTraj.traj_time, deviceManager->thetaTraj.coef_theta[0], 
+                    deviceManager->thetaTraj.coef_theta[1], deviceManager->thetaTraj.coef_theta[2], deviceManager->thetaTraj.coef_theta[3], deviceManager->thetaTraj.coef_theta[4],
+                    deviceManager->thetaTraj.coef_theta[5]); 
 
 
             // usleep(50000);
@@ -1935,12 +1939,12 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
         case IHM_INPUT_EVENT_HELIX_TRAJ:
             if(deviceManager != NULL)
             {
-                if(deviceManager->Traj_on == 0 & (deviceManager->theta_flag == 0)) // might need to change this 
+                if(deviceManager->Traj_on == 0) // might need to change this 
 
                 {
                     deviceManager->Traj_on = 1; 
                     traj_name = "helixtraj.txt";
-                    loop_runs = lengthTrajectory("helixtraj.txt")-1; 
+                    loop_runs = lengthTrajectory(traj_name)-1; 
 
 
                     IHM_ShowState(deviceManager->ihm, "Helix Traj"); 
@@ -2012,19 +2016,32 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     // //generateTrajectory(deviceManager);
                     // //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
                     // //runTrajectory(event, deviceManager);
-                    readTrajectory(traj_name, deviceManager->genTraj.line_count, deviceManager);
-                    IHM_PrintInfo(deviceManager-> ihm, (char *)deviceManager->genTraj.line_count);  
-                    genTrajectory(deviceManager); 
+                    // readTrajectory(traj_name, deviceManager->genTraj.line_count, deviceManager);
+                    // IHM_PrintInfo(deviceManager-> ihm, (char *)deviceManager->genTraj.line_count); 
+                    // printf("Theta flag %i", deviceManager->theta_flag);
+                    if(deviceManager->theta_flag == 1)
+                    {
+                        // printf("Theta flag %i", deviceManager->theta_flag);
+                        IHM_ShowState(deviceManager->ihm, "Im running  a theta traj");
+                        readThetaTrajectory(traj_name, deviceManager->genTraj.line_count,deviceManager);
+                        genThetaTraj(deviceManager);
+                    } 
+                    else{
+
+                        readTrajectory(traj_name, deviceManager->genTraj.line_count, deviceManager);
+                        genTrajectory(deviceManager); 
+
+                    }
                     followTrajectory(deviceManager->genTraj, deviceManager); 
                     t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
-                    if((t_elapsed > deviceManager->coef.traj_time))
+                    if((t_elapsed > deviceManager->coef.traj_time) & deviceManager->theta_flag != 1)
                         {
                             deviceManager->genTraj.line_count = deviceManager->genTraj.line_count + 1; 
                             deviceManager->genTraj.trajStartTime = clock(); 
 
                         }
                     
-                    if ((deviceManager->genTraj.line_count >= loop_runs))
+                    if ((deviceManager->genTraj.line_count >= loop_runs) & (deviceManager->theta_flag !=1))
                     {
                         IHM_ShowState(deviceManager->ihm, "Traj Done"); 
                         deviceManager->Traj_on = 0;
@@ -2034,6 +2051,16 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                         deviceManager->genTraj.vy_des = 0;
                         deviceManager->genTraj.vz_des = 0;
 
+                    }
+                    if ((deviceManager->theta_flag) & (t_elapsed > deviceManager->thetaTraj.traj_time))
+                    {
+                         IHM_ShowState(deviceManager->ihm, " Theta Traj Done"); 
+                        deviceManager->Traj_on = 0;
+                        deviceManager->theta_flag = 0; 
+                        deviceManager->genTraj.line_count = 0;
+                        deviceManager->genTraj.vx_des = 0;
+                        deviceManager->genTraj.vy_des = 0;
+                        deviceManager->genTraj.vz_des = 0;
                     }
                    
                    
