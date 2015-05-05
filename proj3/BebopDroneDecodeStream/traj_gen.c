@@ -55,7 +55,7 @@ void followTrajectory(TRAJECTORY_t traj, void *customData)
     deviceManager->dataPCMD.gaz = -( KDZ* (traj.vz_des - deviceManager->flightStates.vz_cur) + KPZ * (traj.z_des - deviceManager->flightStates.z_cur));
     // arent we sending 
     //print for debug
-    IHM_ShowDes(deviceManager->ihm, deviceManager->hoverTraj.x_des, deviceManager->hoverTraj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
+    IHM_ShowDes(deviceManager->ihm, deviceManager->traj.x_des, deviceManager->traj.y_des, ax_des, ay_des, deviceManager->dataPCMD.roll, deviceManager->dataPCMD.pitch);
 }
 
 
@@ -303,6 +303,8 @@ void genThetaTraj (void *customData)
     float t; 
     BD_MANAGER_t *deviceManager = (BD_MANAGER_t*) customData; 
 // current time  // 
+    int n =  deviceManager->thetaTraj.n; 
+    int b =  deviceManager->thetaTraj.b; 
     float theta, omega, alpha, r, b; 
     theta = deviceManager->thetaTraj.coef_theta[0] + deviceManager->thetaTraj.coef_theta[1]*t +
             deviceManager->thetaTraj.coef_theta[2]*pow(t,2) + deviceManager->thetaTraj.coef_theta[3]*pow(t,3)+
@@ -318,22 +320,22 @@ void genThetaTraj (void *customData)
 
     t = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;
 
-    r = 1; 
-    b = 1;
+    r = 2; 
+    // b = 1;
 
     deviceManager->genTraj.x_des  = r*cos(theta)-r;
-    deviceManager->genTraj.y_des  = r*sin(theta);
-    deviceManager->genTraj.z_des  = b*theta;
+    deviceManager->genTraj.y_des  = r*sin(n*theta);
+    deviceManager->genTraj.z_des  = -1 + b*theta;
 
 //velocities
     deviceManager->genTraj.vx_des = -r*omega*sin(theta);
-    deviceManager->genTraj.vy_des = r*omega*cos(theta);
+    deviceManager->genTraj.vy_des = r*n*omega*cos(n*theta);
     deviceManager->genTraj.vz_des = b*omega;
 
 // accel 
 
     deviceManager->genTraj.ax_des = -r*pow(omega,2)*cos(theta)+sin(theta)*(-r*alpha); 
-    deviceManager->genTraj.ay_des = -r*pow(omega,2)*sin(theta)+cos(theta)*r*alpha;
+    deviceManager->genTraj.ay_des = -r*n*pow(omega,2)*sin(n*theta)+cos(n*theta)*r*pow(n,2)*alpha;
     deviceManager->genTraj.az_des = b*alpha;
 
 }

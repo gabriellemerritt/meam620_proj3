@@ -1932,7 +1932,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 
             }
             break;
-        case IHM_INPUT_EVENT_THETA_TRAJ:
+        case IHM_INPUT_EVENT_HELIX_TRAJ:
             if(deviceManager != NULL)
             {
                 if(deviceManager->Traj_on == 0 & (deviceManager->theta_flag == 0)) // might need to change this 
@@ -1943,8 +1943,10 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     loop_runs = lengthTrajectory("helixtraj.txt")-1; 
 
 
-                    IHM_ShowState(deviceManager->ihm, "Theta Traj"); 
+                    IHM_ShowState(deviceManager->ihm, "Helix Traj"); 
                     deviceManager->theta_flag =1; 
+                    deviceManager->thetaTraj.n = 1; 
+                    deviceManager->thetaTraj.b = 1; 
                     deviceManager->genTraj.trajStartTime = clock();
                     deviceManager->genTraj.x_offset = deviceManager->flightStates.x_cur;
                     deviceManager->genTraj.y_offset = deviceManager->flightStates.y_cur;
@@ -1954,6 +1956,29 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 }
             }
             break; 
+        case IHM_INPUT_EVENT_FIG8_TRAJ:
+            if(deviceManager != NULL)
+            {
+                if(deviceManager->Traj_on ==0)
+                {
+                    deviceManager->Traj_on =1; 
+                    traj_name ="figure8traj.txt"; 
+                    loop_runs = lengthTrajectory(traj_name)-1; 
+
+                    IHM_ShowState(deviceManager->ihm, "Figure 8 Traj"); 
+                    deviceManager->theta_flag =1; 
+                    deviceManager->thetaTraj.n = 2; 
+                    deviceManager->thetaTraj.b = 0; 
+                    deviceManager->genTraj.trajStartTime = clock();
+                    deviceManager->genTraj.x_offset = deviceManager->flightStates.x_cur;
+                    deviceManager->genTraj.y_offset = deviceManager->flightStates.y_cur;
+                    deviceManager->genTraj.z_offset = deviceManager->flightStates.z_cur; 
+
+
+                }
+            }
+            break;
+            
         case IHM_INPUT_EVENT_KILL_TRAJ:
             if(deviceManager != NULL)
             {
@@ -1981,13 +2006,14 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                 }
                 else
                 {
-                    printf("Count: %i",deviceManager->genTraj.line_count);
-                   
+                    // printf("Count: %i",deviceManager->genTraj.line_count);
+
                     deviceManager->dataPCMD.flag = 1;
                     // //generateTrajectory(deviceManager);
                     // //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
                     // //runTrajectory(event, deviceManager);
-                    readTrajectory(traj_name, deviceManager->genTraj.line_count, deviceManager); 
+                    readTrajectory(traj_name, deviceManager->genTraj.line_count, deviceManager);
+                    IHM_PrintInfo(deviceManager-> ihm, (char *)deviceManager->genTraj.line_count);  
                     genTrajectory(deviceManager); 
                     followTrajectory(deviceManager->genTraj, deviceManager); 
                     t_elapsed = (float)(clock() - deviceManager->genTraj.trajStartTime)/CLOCKS_PER_SEC;

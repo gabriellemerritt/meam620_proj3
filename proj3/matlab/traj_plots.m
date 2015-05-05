@@ -1,8 +1,9 @@
 function [] = traj_plots(filename_actual, filename_desired) 
 
 %filename = 'example_log.txt'; 
-clear all; clf; 
+%clear all; clf; 
 
+ 
 fileID = fopen(filename_actual, 'r');
 stringcells = textscan(fileID,'%s','Delimiter','\n');
 stringcells = stringcells{1};

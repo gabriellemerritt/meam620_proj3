@@ -329,7 +329,14 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
-                    ihm->onInputEventCallback( IHM_INPUT_EVENT_THETA_TRAJ, ihm ->customData); 
+                    ihm->onInputEventCallback( IHM_INPUT_EVENT_HELIX_TRAJ, ihm ->customData); 
+                }
+            }
+            else if (key =='8')
+            {
+                if(ihm->onInputEventCallback != NULL)
+                {
+                    ihm->onInputEventCallback( IHM_INPUT_EVENT_FIG8_TRAJ, ihm->customData); 
                 }
             }
             else if (key =='x')

@@ -79,7 +79,7 @@ typedef struct
     float y_offset;
     float z_offset;
     clock_t trajStartTime;
-    int line_count; 
+    int line_count;  
 } TRAJECTORY_t;
 
 
@@ -88,11 +88,15 @@ typedef struct
     float coef_x[6]; 
     float coef_y[6]; 
     float coef_z[6];
-    float traj_time;  
+    float traj_time;
+
 
 }COEFF_t; 
+
 typedef struct 
 {
+    int b; 
+    int n;  
     float traj_time; 
     float coef_theta[6];
 }THETA_t; 
