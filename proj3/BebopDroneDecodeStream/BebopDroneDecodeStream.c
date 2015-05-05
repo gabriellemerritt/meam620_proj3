@@ -2016,7 +2016,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
                     // //generateTrajectory(deviceManager);
                     // //followTrajectory(deviceManager->hoverTraj, deviceManager);                    
                     // //runTrajectory(event, deviceManager);
-                    // readTrajectory(traj_name, deviceManager->genTraj.line_count, deviceManager);
+                    // readTrajectory(traj_name, genTraj.line_count, deviceManager);
                     // IHM_PrintInfo(deviceManager-> ihm, (char *)deviceManager->genTraj.line_count); 
                     // printf("Theta flag %i", deviceManager->theta_flag);
                     if(deviceManager->theta_flag == 1)

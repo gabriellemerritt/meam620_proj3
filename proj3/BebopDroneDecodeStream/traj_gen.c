@@ -29,7 +29,7 @@ by Lou Lin and Gabby Merritt
 
 #define KDX 200
 #define KDY 200
-#define KDZ 00
+#define KDZ 100
 
 
 // volatile int line_number; 
