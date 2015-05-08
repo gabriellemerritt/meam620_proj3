@@ -1,7 +1,7 @@
 \documentclass[english, twocolumn]{article}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{latexsym,amsmath,amssymb,amsfonts,fullpage,graphicx, float}
-\usepackage{lastpage}
+\usepackage{latexsym,amsmath,amssymb,amsfonts,fullpage,graphicx, float,adjustbox}
+\usepackage{lastpage,listings}
 \usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
 \usepackage{placeins}
 \usepackage{adjustbox}
@@ -14,101 +14,88 @@
 \maketitle
 
 \begin{abstract}
-Included in this report are the details of our solution to Phase 4 of Project 1. The project required this team to draw on previous code submissions for Project 1 in MEAM620 that culminated with the implementation of a controller for a KMel Nano+ to follow a planned trajectory. The final phase consisted of 2 parts; a controller and a trajectory planner.  Our controller was adapted from code produced by Jay Davey in Project 1 Phase 2.  Our trajectory planner was adapted from code by Alex Burka and Gabrielle Merritt in Project 1 Phase 3.  Unknown waypoints were provided that the quadrotor had to navigate through.  This report details how our group was able to fly a micro aerial vehicle along the path we found through a list of unknown waypoints. 
+For our third project we created closed trajectories for a commercial drone ( Bebop ARDrone) using MATLAB to generate trajectories, and writing a C program to calculate and run our desired trajectories. 
+
 \end{abstract}
-
+\section*{Code Architecture }
+For the code architecture, we used the Bebop's SDK basic flying sample as a base to send and recieve messgaes from the Bebop, and used it as a basis for designing our trajectory planning and control code. Figure~\ref{fig:code_draw} 
 \section*{Methods}
-For this assignment we broke the work into two main sections, the first being the position controller for the quadrotor (attitude was handled on board the quadrotor), and generating smooth trajectories for the controller to follow. 
-\subsection*{Controller}
-\subsubsection*{PID architecture}
+\subsection*{Control System}
+\paragraph{Estimating Flight States}
+To have the Bebop fly any arbitrary trajectory in $R^3$, a position based controller is necessary. In order to implement a position based controller, we must be able to estimate the position and orientation of the quadrotor. Since the video transferred through wifi is not reliable, using epipolar geometry related technique on the computer's side is impossible. Luckily, the Bebop drone already have onboard attitude and velocity estimator using a combination of inertial sensors and optical flow. Assuming the sensor fusion onboard is reliable, it is reasonable for me to just pull the information from the drone registering my own callback functions in the API. \\
+ 
+ \begin{adjustbox}{width=.45*\textwidth, height=4*\textheight,keepaspectratio}
+\begin{lstlisting}
+ARCOMMANDS_Decoder_SetCommonCommonStateBatteryStateChangedCallback
+(batteryStateChangedCallback, deviceManager);
 
-Our controller was designed with a linearized model of the quadrotor and a nested control structure.  The same controller was used for hovering, single waypoint navigation and multi waypoint navigation. A nested control structure was used so that the attitude controller could run at a faster rate (1kHz) than the position controller (100Hz).  Figure 1 shows a block diagram of our control architecture.
-\nolinebreak
-\begin{figure}[!h]
-\caption{Controller Architecture}
-\includegraphics[width = \linewidth]{PID.png}
-\end{figure}
-\FloatBarrier
-\subsubsection*{Equations for Control}
- First we obtained the error between the desired angular and linear positions and velocities 
-\begin{table}[ht]
-\resizebox{.5\textwidth}{!}{\begin{tabular}{llll}
-Linear Position Error        & Angular Position Error & Linear Velocity Error                          & Angular Velocity Error \\
-$e_{x} = x_{des} - x_{crnt}$ &$ e_{\phi} = \phi_{des} - \phi_{crnt}$& $\dot{e_{x}} = \dot{x_{des}} - \dot{x_{crnt}}$ & $e_{p} = p_{des} - p_{crnt}$     \\
-$e_{y} = y_{des} - y_{crnt}$ & $ e_{\theta} = \theta_{des} - \theta{crnt}$ & $\dot{e_{y}} = \dot{y_{des}} - \dot{y_{crnt}}$     & $e_{q} = q_{des} - q_{crnt}   $     \\
+ARCOMMANDS_Decoder_SetARDrone3PilotingStateFlyingStateChangedCallback
+(flyingStateChangedCallback, deviceManager);
 
-$e_{z} = z_{des} - z_{crnt}$ & $ e_{\psi} = \psi_{des} - \psi_{crnt}$   & $\dot{e_{z}} = \dot{z_{des}} - \dot{z_{crnt}}$        & $e_{r} = r_{des} - r_{crnt}$           
-\end{tabular}}
-\end{table} 
-\FloatBarrier 
-Using the error between desired and actual position we calculated which positions and velocities should be commanded to the motors.
-\subsubsection*{Gains}
- After testing a variety of the gains we found that the suggested gains in the lab manual worked well for our system.
-\begin{table}[ht]
-\resizebox{.5\textwidth}{!}{\begin{tabular}{llllll} 
-X Gains & Y Gains & Z Gains &$ \phi$ Gains & $\theta$ Gains & $\psi$ Gains \\
-$K_{p,x} = 10$  &$ K_{p,y} = 10 $& $K_{p,z} = 15 $ & $K_{p,\phi} = 1.6$ & $K_{p,\theta} = 1.6$ & $K_{p,\psi} = 1$ \\
-$K_{d,x} = 5$  & $K_{d,y} = 5$  & $K_{d,z} = 7$&  $K_{d,\phi} = .1$ & $K_{d,\theta} = .1$ & $K_{d,\psi} = 0$
-\end{tabular}}
-\end{table}
-\FloatBarrier
-\paragraph{Commanded Positions } 
-$$\phi_{cmd} =   \frac{1}{g} \ddot{x}_{cmd} \sin(\psi_{crnt}) - \ddot{y}_{cmd}\cos(\psi_{crnt})$$
-$$\theta_{cmd} =   \frac{1}{g} \ddot{x}_{cmd} \cos(\psi_{crnt}) + \ddot{y}_{cmd} \sin(\psi_{crnt})$$
-$$\psi_{cmd} =   \psi_{des}$$
-\paragraph{Commanded Accelerations}
-$$\ddot{x}_{cmd} = \ddot{x}_{des} + K_{p,x} {e_{x}} + K_{d,x} {\dot{e_{x}}}$$
-$$\ddot{y}_{cmd} = \ddot{y}_{des} + K_{p,y} {e_{y}} + K_{d,y} {\dot{e_{y}}}$$
-$$\ddot{z}_{cmd} = \ddot{z}_{des} + K_{p,z} {e_{z}} + K_{d,z} {\dot{e_{z}}}$$ 
+ARCOMMANDS_Decoder_SetARDrone3PilotingStateAltitudeChangedCallback
+(altitudeCallback, deviceManager);
 
-Since we assuming that the quadrotor's position will remain near hover we assume that \\
-\begin{center}
-$ p_{cmd} = 0 $ ,  $ q_{cmd} = 0$ ,  $r_{cmd} = \dot{\psi}_{des} $
-\end{center}
+ARCOMMANDS_Decoder_SetARDrone3PilotingStateAttitudeChangedCallback
+(attitudeCallback, deviceManager);
 
-\paragraph{Controller outputs }
-$$u_1 = m(g + \ddot{z}_{cmd}) $$
-$$u _2 = \left[ \begin{matrix} 
-k_{p,\phi} e_{\phi} + k_{d,\phi} e_{p}\\
-k_{p,\theta} e_{\theta} + k_{d,\theta} e_{q}\\
-k_{p,\psi} e_{\psi} + k_{d,\psi} e_r\\
-\end{matrix} \right]
+ARCOMMANDS_Decoder_SetARDrone3PilotingStateSpeedChangedCallback
+(velocityCallback, deviceManager);
+\end{lstlisting}
+\end{adjustbox}
+The velocity measured is already set in the world frame. Since the Bebop can directly measure altitude, all it's left to do is to numerically integrate the velocity in the x and y direction to obtain my position. We used forward Euler approximation to calculate our position, and the result were reasonable. \\
+
+\paragraph{Actuator Inputs}
+We are able to send 4 different inputs to the Bebop drone. The
+\begin{verbatim}
+ARCOMMANDS_Generator_GenerateARDrone3PilotingPCMD()
+\end{verbatim} function 
+allows me to send desired roll and pitch angles, the yaw rate, and the velocity
+in the world Z direction. The inner loop from propeller inputs to the desired
+roll, pitch, yaw and velocity in Z is already close onboard, and we have no 
+access to it unless we hack the firmware, so we will just assume that the inner
+loop is stable and reacts fast to the reference signals. It is interesting that the
+API has two different definitions of the body frame. The reference frame for
+the actuator inputs has a rotation of $\pi$ about the X axis of the sensor
+reference frame, therefore the controller needs to be modified accordingly.\\
+
+\paragraph{Backstepping Control of position}
+Leverging from project 1 phase 2, we can just take a controller in this form and expect the errors converge to zero exponentially.
+$$a{i commanded} = a_{i desired} + K_{di}(V_{i desired} - V_i) + K_{p i}(r_{i desired} - r_i)$$
+
+Then we can linearize about hover and use the commanded acceleration in the X and Y direction to find the desired roll and pitch angles. As long as the onboard attitude controller make these angles converge to the desired values much faster than my position controller, the quadrotor will perform reasonably.\\
+
+However, the reference frames are defined differently. In the sensor frame, the Z axis points down, and the Z axis points up. In order to compensate for this inconsistency, I have to negate the pitch angle and the desired velocity in the Z direction.
 $$
-For thrust since the MRSL's communication architecture requires thrust in grams we scaled our thrust ($u_1$) by 1000:
+\phi_{commanded} = g(a_{x commanded}*\sin\psi - a_{y commanded})\cos\psi
+$$
+$$\theta_{commanded} = -g(a_{x commanded}*\cos\psi + a_{y commanded})\sin\psi$$
 
-$trpy = [1000u_1/g, \phi_{cmd}, \theta_{cmd}, \psi_{cmd}]$
 
-$drpy = [0, 0, 0, 0]$
-\subsubsection*{Controller limits}
-All of the errors and quadrotor command values are internally limited by our controller, in an attempt to keep things near the linearization point and prevent a runaway robot.
-\linebreak
-\linebreak
-Maximum error in x, y, z that goes into the controller equation:\\
- $e_x = 0.75 $ , $e_y =0.75$ ,  $e_z = 1.52$  \\
-\linebreak
-Maximum angle allowed for roll and pitch:\\
-$\phi_{max} = 40 * \frac{\pi}{180}$ ,
-$\theta_{max} = 40 * \frac{\pi}{180}$\\
-\linebreak
-Maximum overall thrust sent to quadrotor: \\ 
-$F_{max} = 4mg$ ,
-$F_{min} = .05mg$\\
-\linebreak
-Maximum moments sent to quadrotor:\\
-$M_{xy, max} = 0.01$ ,
-$M_{z, max} = 0.01$
-
+Note that I can only command desired Z velocity instead of a thrust. I must modify the control law for the commanded Z velocity (such is named gaz in the API).
+\begin{equation}
+gaz = V_{z desired} + K_{pz}(r_{z desired} - r_z)
+\end{equation}
 
 \subsection*{Trajectory Generation}
- For generating most of the trajectories we used Gabby's trajectory generation algorithm. After eliminating straightaways on the path, the trajectory generator finds an appropriate amount of time each section of the path should take; this is done by taking the cube root of the distance between two successive points and scaling them by some constant (in this case 2) to ensure the quadrotor will not try to accelerate from point to point too quickly. After generating a vector of times for each segment of the path we fit a  quintic spline to generate a minimum jerk trajectory for each path segment.  
- \subsubsection*{Spline Generation for Helix }
- For the helix (See  Follow Waypoint Path 3), we used Alex's smoothing algorithm which first eliminated straight aways on the path leaving only the corners. This is done by taking a numerical second derivative of the path, and eliminating points with no curvature. Afterwards we used a quintic spline to generate a minimum jerk trajectory of points, velocities and accelerations near the corners of the path (stopping at each corner). After now having a more accurate mapping of the path, we interpolated a cubic spline, passing through only every 100th point of the minimum jerk trajectory, which gave a smooth trajectory, without stopping at every corner point. We only used this method on the helix path, since the other paths had relatively few points, or many corners that occur in quick succession.
+We used MATLAB to generate coefficients for quintic minimum jerk trajectories. For 
+trajectories composed of successive straight line segments, each line was planned over  
+seconds, with the quadrotor stopping at each waypoint.  We calculated coefficients  and  
+in the x, y, and z directions based on the start and end positions of each line segment and 
+start and end velocities and accelerations of zero. We then output the coefficients and 
+length of time for each segment to a text file. After reading the text file into C, we 
+calculated the time-parameterized position, velocity, and acceleration: 
+These values were the desired positions, velocities, and accelerations that we fed into our 
+controller. We used this method to generate a closed square trajectory. 
 
-
-\section*{Results and Discussion}
-Our results indicate that our controller and trajectory planning code was able to fly the quadrotor through a given list of waypoints.  Some error can be observed in particular in the z-direction of the commanded trajectories.  This could have a few possible explanations.  In the lab manual documentation (page 3) there is a value for the z-offset that is set at 100mm.  There’s a possibility that this value might not be correct and instead should be closer to 148mm, which is 100mm  + 48mm our average error in the negative z-direction.  If the offset instead were 148mm then our average error could have been close to zero.  Instead, our average error was around 48mm over the course of the trajectories.  The maximum error with the 100mm offset was -78mm. If the offset were 148mm our maximum error would have been -30mm.  Other ways we could improve on the steady state error could include adding an integral term to the PD controller.  We also might not have had an optimally tuned $K_{p,z}$  gain (not high enough).  Another explanation could be that the value for the weight of the quadrotor could have been off but it is unlikely to have affected the controller by this amount of error observed. See graphs in appendix A. 
-
-\section*{Conclusion} 
+\subsubsection*{Curved trajectories}
+For curved trajectories, we used parametric equations for x and y and had the parameter  
+vary according to a quintic. We created a figure 8 trajectory in the x-y plane with the 
+position equations: 
+In MATLAB, we calculated coefficients  and  for  as it varies from zero to  and output 
+these coefficients and the time to complete the entire trajectory to a text file. After 
+reading these coefficients into C, we calculated  and and used these to calculate x and y 
+positions, velocities, and accelerations, holding z constant.
+\section*{Results} 
 
 \section{\\Graphs} \label{App:AppendixA}
 
