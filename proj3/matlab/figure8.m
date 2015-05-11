@@ -33,24 +33,24 @@ n = 2;
 %   
 %     %fill in the thetas matrix column by column with the time-based
 %     %position
-%     theta = a0 + a1*t +a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5;
-%     omega = a1 + 2*a2*t + 3*a3*t^2 + 4*a4*t^3 + 5*a5*t^4;
-%     alpha = 2*a2 + 6*a3*t + 12*a4*t^2 + 20*a5*t^3;
-% % 
-% %     %position
-%     x = r*cos(theta)-r;
-%     y = r*sin(n*theta);
-%     z = -1;
-% % 
-% %     %velocities
-%     x_vel = -r*omega*sin(theta);
-%     y_vel = r*n*omega*cos(n*theta);
-%     z_vel = 0;
-% % 
-% %     %accelerations 
-%     x_accel = -r*omega^2*cos(theta)+sin(theta)*(-r*alpha); 
-%     y_accel = -r*n^2*omega^2*sin(n*theta)+cos(n*theta)*r*n^2*alpha;
-%     z_accel = 0;
+    theta = a0 + a1*t +a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5;
+    omega = a1 + 2*a2*t + 3*a3*t^2 + 4*a4*t^3 + 5*a5*t^4;
+    alpha = 2*a2 + 6*a3*t + 12*a4*t^2 + 20*a5*t^3;
+
+    %position
+    x = r*cos(theta)-r;
+    y = r*sin(n*theta);
+    z = -1;
+
+    %velocities
+    x_vel = -r*omega*sin(theta);
+    y_vel = r*n*omega*cos(n*theta);
+    z_vel = 0;
+
+    %accelerations 
+    x_accel = -r*omega^2*cos(theta)+sin(theta)*(-r*alpha); 
+    y_accel = -r*n^2*omega^2*sin(n*theta)+cos(n*theta)*r*n^2*alpha;
+    z_accel = 0;
 %     
     
 fileID = fopen('figure8traj.txt', 'w');
